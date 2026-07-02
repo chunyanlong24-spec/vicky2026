@@ -529,28 +529,27 @@
         </div>
       </div>
       <div class="top-actions">
-        <button class="ghost" id="resetBtn">清空演示数据</button>
         <button class="primary" data-view="practice">开始今日刷题</button>
       </div>
     </header>
 
     <section class="grid">
       <aside class="panel nav">
-        <div class="panel-head"><h2>学习驾驶舱</h2><span class="pill green">本地原型</span></div>
+        <div class="panel-head"><h2>学习驾驶舱</h2><span class="pill green">学生端</span></div>
         <div class="panel-body">
           <button class="active" data-view="practice">刷题训练 <span>Online</span></button>
           <button data-view="mistakes">错题讲解 <span id="mistakeNavCount">0</span></button>
-          <button data-view="bank">题库盘点 <span>演示/正式</span></button>
+          <button data-view="parent">家长看板 <span>进度</span></button>
           <button data-view="plan">55天安排 <span>Day 1</span></button>
         </div>
       </aside>
 
       <section>
         <div class="stats">
-          <div class="stat"><span>今日已做</span><b id="doneCount">0</b><span>演示题</span></div>
+          <div class="stat"><span>今日已做</span><b id="doneCount">0</b><span>道题</span></div>
           <div class="stat"><span>正确率</span><b id="accuracy">0%</b><span>含不稳题统计</span></div>
           <div class="stat"><span>错题/码不准</span><b id="mistakeCount">0</b><span>自动进入讲解</span></div>
-          <div class="stat"><span>当前题库</span><b id="bankCount">0</b><span>演示题 / 目标12000</span></div>
+          <div class="stat"><span>今日得分</span><b id="todayScore">0</b><span>满分100</span></div>
         </div>
 
         <div class="view" id="practiceView">
@@ -655,15 +654,26 @@
           </div>
         </div>
 
-        <div class="view hidden" id="bankView">
+        <div class="view hidden" id="parentView">
           <div class="panel">
-            <div class="panel-head"><h2>题库配置</h2><span class="pill">当前演示 + 正式目标</span></div>
+            <div class="panel-head"><h2>家长看板</h2><span class="pill green" id="parentDate"></span></div>
             <div class="panel-body">
-              <div class="bank-item" style="margin-bottom:10px">
-                <strong id="bankStatusTitle">当前演示题库</strong>
-                <p id="bankStatusText"></p>
+              <div class="stats">
+                <div class="stat"><span>今日完成</span><b id="parentCompleted">0/4</b><span>语数英物</span></div>
+                <div class="stat"><span>今日得分</span><b id="parentScore">0</b><span>满分100</span></div>
+                <div class="stat"><span>今日错题</span><b id="parentMistakes">0</b><span>含码不准</span></div>
+                <div class="stat"><span>累计做题</span><b id="parentTotal">0</b><span>道题</span></div>
               </div>
-              <div class="bank-grid" id="bankGrid"></div>
+              <div class="bank-grid" id="parentSubjects"></div>
+              <div class="bank-item" style="margin-top:10px">
+                <strong>薄弱考点</strong>
+                <p id="parentWeakPoints">暂无数据</p>
+              </div>
+              <div class="controls">
+                <button class="primary" id="shareReportBtn">生成家长报告链接</button>
+                <button id="copyReportBtn" class="hidden">复制链接</button>
+                <span class="play-status" id="shareReportStatus">生成后可发给异地家长查看当天快照。</span>
+              </div>
             </div>
           </div>
         </div>
@@ -1298,6 +1308,17 @@
     state.current ??= 0;
     state.practiceSubject ??= "";
     state.seenByMode ??= {};
+    state.bySubject ??= {};
+    state.dayStarted ??= new Date().toISOString().slice(0, 10);
+    const subjectTargets = { "数学": 12, "英语": 16, "物理": 10, "语文": 7 };
+    let sharedReport = null;
+    if (location.hash.startsWith("#report=")) {
+      try {
+        sharedReport = JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(8)))));
+      } catch (error) {
+        sharedReport = null;
+      }
+    }
     let selected = null;
     let submitted = false;
     let activeStep = 0;
@@ -1328,12 +1349,11 @@
     }
 
     function updateStats() {
-      const usableCount = questions.length + questions.filter(q => q.variant).length;
       $("#doneCount").textContent = state.done;
       $("#accuracy").textContent = state.done ? Math.round(state.correct / state.done * 100) + "%" : "0%";
       $("#mistakeCount").textContent = state.mistakes.length;
       $("#mistakeNavCount").textContent = state.mistakes.length;
-      $("#bankCount").textContent = usableCount;
+      $("#todayScore").textContent = state.done ? Math.round(state.correct / state.done * 100) : 0;
     }
 
     function renderQuestion() {
@@ -1391,6 +1411,13 @@
       state.seenByMode[modeKey] ??= [];
       if (!state.seenByMode[modeKey].includes(q.id)) state.seenByMode[modeKey].push(q.id);
       const isRight = selected === q.answer;
+      state.bySubject[q.subject] ??= { done: 0, correct: 0, mistakes: 0 };
+      state.bySubject[q.subject].done += 1;
+      if (isRight && confidence === "steady" && !forceUnsteady) {
+        state.bySubject[q.subject].correct += 1;
+      } else {
+        state.bySubject[q.subject].mistakes += 1;
+      }
       if (isRight && confidence === "steady" && !forceUnsteady) state.correct += 1;
       if (!isRight || confidence !== "steady" || forceUnsteady) {
         addMistake(q, isRight ? "码不准/超时题" : "错题", selected);
@@ -1550,22 +1577,43 @@
       }));
     }
 
-    function renderBank() {
-      const targetTotal = bankPlan.reduce((sum, [, count]) => sum + count, 0);
-      const usableCount = questions.length + questions.filter(q => q.variant).length;
-      const subjectCounts = ["数学", "英语", "语文", "物理", "化学", "地理", "生物"].map(subject => {
-        const count = questions.filter(q => q.subject === subject).length;
-        return `${subject}${count}题`;
-      }).join(" / ");
-      $("#bankStatusTitle").textContent = `当前可用题量：${usableCount}题`;
-      $("#bankStatusText").textContent = `当前基础题${questions.length}题，另有同类变式${questions.filter(q => q.variant).length}题。分布：${subjectCounts}。已加入阅读理解、文言理解、二次函数预习、电路预习、化学方程式等质量升级题型；后续仍建议人工抽检与逐步替换精品题。`;
-      $("#bankGrid").innerHTML = bankPlan.map(([name, count, desc]) => `
-        <div class="bank-item">
-          <strong>${name} · ${count}题</strong>
-          <p>${desc}</p>
-          <div class="bar" style="--w:${Math.min(count / 2400 * 100, 100)}%"><i></i></div>
-        </div>
-      `).join("");
+    function reportData() {
+      return sharedReport || {
+        date: state.dayStarted,
+        done: state.done,
+        correct: state.correct,
+        mistakes: state.mistakes,
+        bySubject: state.bySubject
+      };
+    }
+
+    function renderParent() {
+      const report = reportData();
+      const subjects = ["数学", "英语", "物理", "语文"];
+      const completed = subjects.filter(subject => (report.bySubject?.[subject]?.done || 0) >= subjectTargets[subject]).length;
+      const score = report.done ? Math.round((report.correct || 0) / report.done * 100) : 0;
+      $("#parentDate").textContent = report.date || new Date().toISOString().slice(0, 10);
+      $("#parentCompleted").textContent = `${completed}/4`;
+      $("#parentScore").textContent = score;
+      $("#parentMistakes").textContent = report.mistakes?.length || 0;
+      $("#parentTotal").textContent = report.done || 0;
+      $("#parentSubjects").innerHTML = subjects.map(subject => {
+        const item = report.bySubject?.[subject] || { done: 0, correct: 0, mistakes: 0 };
+        const subjectScore = item.done ? Math.round(item.correct / item.done * 100) : 0;
+        const isComplete = item.done >= subjectTargets[subject];
+        return `<div class="bank-item">
+          <strong>${subject} · ${isComplete ? "已完成" : "未完成"}</strong>
+          <p>完成 ${item.done}/${subjectTargets[subject]} 题 · 得分 ${subjectScore} · 错题 ${item.mistakes}</p>
+          <div class="bar" style="--w:${Math.min(item.done / subjectTargets[subject] * 100, 100)}%"><i></i></div>
+        </div>`;
+      }).join("");
+      const weakCounts = {};
+      (report.mistakes || []).forEach(item => {
+        const key = `${item.subject}·${item.point}`;
+        weakCounts[key] = (weakCounts[key] || 0) + 1;
+      });
+      const weak = Object.entries(weakCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+      $("#parentWeakPoints").textContent = weak.length ? weak.map(([name, count]) => `${name}（${count}题）`).join("、") : "暂无数据";
     }
 
     function switchView(name) {
@@ -1573,6 +1621,7 @@
       $("#" + name + "View").classList.remove("hidden");
       $$(".nav button, .top-actions [data-view]").forEach(b => b.classList.toggle("active", b.dataset.view === name));
       if (name === "mistakes") renderMistakes();
+      if (name === "parent") renderParent();
     }
 
     $$(".nav button, .top-actions [data-view]").forEach(btn => btn.addEventListener("click", () => switchView(btn.dataset.view)));
@@ -1613,15 +1662,28 @@
         renderQuestion();
       }
     });
-    $("#resetBtn").addEventListener("click", () => {
-      if (!confirm("清空本地演示数据？")) return;
-      localStorage.removeItem("chengduTutorState");
-      location.reload();
+    let reportUrl = "";
+    $("#shareReportBtn").addEventListener("click", () => {
+      const payload = {
+        date: state.dayStarted,
+        done: state.done,
+        correct: state.correct,
+        mistakes: state.mistakes.slice(0, 50),
+        bySubject: state.bySubject
+      };
+      reportUrl = `${location.origin}${location.pathname}#report=${btoa(unescape(encodeURIComponent(JSON.stringify(payload))))}`;
+      $("#copyReportBtn").classList.remove("hidden");
+      $("#shareReportStatus").textContent = "报告链接已生成，点击复制后发给家长。";
+    });
+    $("#copyReportBtn").addEventListener("click", async () => {
+      if (!reportUrl) return;
+      await navigator.clipboard.writeText(reportUrl);
+      $("#shareReportStatus").textContent = "已复制，可直接发给家长。";
     });
 
-    renderBank();
     renderQuestion();
     updateStats();
+    if (sharedReport) switchView("parent");
   </script>
 </body>
 </html>
