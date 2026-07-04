@@ -631,6 +631,7 @@
               </div>
               <div>
                 <button class="ghost hidden" id="readQuestionBtn">朗读英文题目</button>
+                <span class="play-status" id="englishAudioStatus" aria-live="polite"></span>
                 <button class="warn" id="unsteadyBtn">标记不稳</button>
                 <button class="good" id="submitBtn">提交答案</button>
                 <button class="primary hidden" id="nextBtn">下一题</button>
@@ -1397,6 +1398,10 @@
     let submitted = false;
     let activeStep = 0;
     let timer = null;
+    let englishAudio = null;
+    let englishAudioFinish = null;
+    let englishAudioGeneration = 0;
+    let englishAudioPlaying = false;
 
     const $ = (s) => document.querySelector(s);
     const $$ = (s) => [...document.querySelectorAll(s)];
@@ -1477,10 +1482,14 @@
 
     function renderQuestion() {
       const q = currentQuestion();
+      stopEnglishAudio();
+      englishAudioPlaying = false;
       selected = null;
       submitted = false;
       $("#inlinePlayer").classList.add("hidden");
       $("#readQuestionBtn").classList.toggle("hidden", q.subject !== "英语");
+      $("#readQuestionBtn").textContent = "朗读英文题目";
+      $("#englishAudioStatus").textContent = q.subject === "英语" ? "点击播放" : "";
       $("#questionMeta").innerHTML = [
         q.subject, q.point, q.type, q.difficulty, "成都同难度原创变式"
       ].map((x, i) => `<span class="pill ${i === 3 ? "amber" : ""}">${x}</span>`).join("");
@@ -1584,6 +1593,120 @@
       u.pitch = 1;
       window.speechSynthesis.speak(u);
       return true;
+    }
+
+    function stopEnglishAudio() {
+      englishAudioGeneration += 1;
+      if (englishAudio) {
+        englishAudio.pause();
+        englishAudio.removeAttribute("src");
+        englishAudio.load();
+        englishAudio = null;
+      }
+      if (englishAudioFinish) {
+        englishAudioFinish(false);
+        englishAudioFinish = null;
+      }
+      window.speechSynthesis?.cancel();
+    }
+
+    function cleanEnglishAudioText(text) {
+      return text
+        .replace(/[（(][^()（）]*[\u3400-\u9fff][^()（）]*[)）]/g, "")
+        .replace(/[\u3400-\u9fff]/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function splitEnglishAudioText(text, maxLength = 160) {
+      const sentences = text.match(/[^.!?]+[.!?]?/g) || [text];
+      const chunks = [];
+      sentences.forEach(sentence => {
+        const words = sentence.trim().split(/\s+/);
+        let chunk = "";
+        words.forEach(word => {
+          const next = chunk ? `${chunk} ${word}` : word;
+          if (next.length > maxLength && chunk) {
+            chunks.push(chunk);
+            chunk = word;
+          } else {
+            chunk = next;
+          }
+        });
+        if (chunk) chunks.push(chunk);
+      });
+      return chunks;
+    }
+
+    function playEnglishAudioChunk(text, generation) {
+      return new Promise((resolve, reject) => {
+        const url = `https://fanyi.baidu.com/gettts?lan=en&text=${encodeURIComponent(text)}&spd=3&source=web`;
+        const audio = new Audio(url);
+        englishAudio = audio;
+        englishAudioFinish = resolve;
+        audio.preload = "auto";
+        audio.onended = () => {
+          englishAudio = null;
+          englishAudioFinish = null;
+          resolve(true);
+        };
+        audio.onerror = () => {
+          englishAudio = null;
+          englishAudioFinish = null;
+          reject(new Error("online-audio-error"));
+        };
+        audio.play().catch(reject);
+        if (generation !== englishAudioGeneration) resolve(false);
+      });
+    }
+
+    function playSystemEnglish(text, setStatus) {
+      return new Promise(resolve => {
+        if (!("speechSynthesis" in window)) {
+          resolve(false);
+          return;
+        }
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = "en-US";
+        utterance.rate = 0.9;
+        const voice = pickVoice("en-US");
+        if (voice) utterance.voice = voice;
+        let started = false;
+        const startTimeout = setTimeout(() => {
+          if (!started) resolve(false);
+        }, 2500);
+        utterance.onstart = () => {
+          started = true;
+          clearTimeout(startTimeout);
+          setStatus("在线音频不可用，已切换系统语音");
+        };
+        utterance.onend = () => resolve(true);
+        utterance.onerror = () => resolve(false);
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(utterance);
+      });
+    }
+
+    async function playEnglishAudio(text, setStatus) {
+      stopEnglishAudio();
+      const generation = englishAudioGeneration;
+      const cleaned = cleanEnglishAudioText(text);
+      const chunks = splitEnglishAudioText(cleaned);
+      if (!chunks.length) return "failed";
+      try {
+        for (let index = 0; index < chunks.length; index += 1) {
+          if (generation !== englishAudioGeneration) return "stopped";
+          setStatus(`正在播放 ${index + 1}/${chunks.length}`);
+          const played = await playEnglishAudioChunk(chunks[index], generation);
+          if (!played) return "stopped";
+        }
+        return "online";
+      } catch (error) {
+        if (generation !== englishAudioGeneration) return "stopped";
+        setStatus("在线音频加载失败，正在尝试系统语音");
+        const systemPlayed = await playSystemEnglish(cleaned, setStatus);
+        return systemPlayed ? "system" : "failed";
+      }
     }
 
     function renderPlayer(q, targetSelector, intro) {
@@ -1819,10 +1942,30 @@
       }
     }));
     $("#submitBtn").addEventListener("click", () => submitAnswer(false));
-    $("#readQuestionBtn").addEventListener("click", () => {
+    $("#readQuestionBtn").addEventListener("click", async () => {
+      const button = $("#readQuestionBtn");
+      const status = $("#englishAudioStatus");
+      if (englishAudioPlaying) {
+        stopEnglishAudio();
+        englishAudioPlaying = false;
+        button.textContent = "朗读英文题目";
+        status.textContent = "已停止";
+        return;
+      }
       const q = currentQuestion();
       const text = [q.stem, ...q.options].join(". ");
-      speak(text, "en-US");
+      englishAudioPlaying = true;
+      button.textContent = "停止朗读";
+      status.textContent = "正在加载英语音频";
+      const result = await playEnglishAudio(text, message => {
+        status.textContent = message;
+      });
+      englishAudioPlaying = false;
+      button.textContent = "重新朗读";
+      if (result === "online") status.textContent = "播放完成";
+      if (result === "system") status.textContent = "系统语音播放完成";
+      if (result === "failed") status.textContent = "当前浏览器禁止音频，请用系统浏览器打开";
+      if (result === "stopped") status.textContent = "已停止";
     });
     $("#unsteadyBtn").addEventListener("click", () => submitAnswer(true));
     $("#nextBtn").addEventListener("click", () => {
