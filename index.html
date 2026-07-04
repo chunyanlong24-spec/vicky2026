@@ -540,7 +540,7 @@
           <button class="active" data-view="practice">刷题训练 <span>Online</span></button>
           <button data-view="mistakes">错题讲解 <span id="mistakeNavCount">0</span></button>
           <button data-view="parent">家长看板 <span>进度</span></button>
-          <button data-view="plan">55天安排 <span>Day 1</span></button>
+          <button data-view="plan">55天安排 <span id="navDay">Day 1</span></button>
         </div>
       </aside>
 
@@ -556,7 +556,7 @@
           <div class="start-grid">
             <button class="start-card primary-entry" id="startDailyBtn">
               <strong>开始今日自测</strong>
-              <span>按科目分段：数学、英语、物理、语文依次完成。</span>
+              <span>七科按系统顺序组卷，完成19道不重复题。</span>
             </button>
             <button class="start-card" id="startPracticeBtn">
               <strong>进入专项练习</strong>
@@ -574,16 +574,16 @@
 
           <div class="today-box">
             <div class="panel">
-              <div class="panel-head"><h2>今日锁定任务</h2><span class="pill green">Day 1</span></div>
+              <div class="panel-head"><h2>今日锁定任务</h2><span class="pill green" id="taskDay">Day 1</span></div>
               <div class="panel-body">
                 <div class="task-list">
-                  <div class="task-row"><b>第1关</b><span>数学：保分题 + 提升题，测函数/几何/方程薄弱点</span><strong>未开始</strong></div>
-                  <div class="task-row"><b>第2关</b><span>英语：核心词 + 完形/阅读，含英文朗读</span><strong>未开始</strong></div>
-                  <div class="task-row"><b>第3关</b><span>物理：概念题 + 计算题 + 实验题</span><strong>未开始</strong></div>
-                  <div class="task-row"><b>第4关</b><span>语文：古诗文 + 文言/阅读一组</span><strong>未开始</strong></div>
-                  <div class="task-row"><b>第5关</b><span>订正：错题看讲解，做对1道同类变式</span><strong>锁定</strong></div>
-                  <div class="task-row"><b>第6关</b><span>预习：化学符号入门 / 二次函数概念卡，由系统排</span><strong>锁定</strong></div>
-                  <div class="task-row"><b>第7关</b><span>积累：英语核心词 + 古诗文易错字</span><strong>锁定</strong></div>
+                  <div class="task-row"><b>第1关</b><span>数学4题：方程、函数、几何与综合应用</span><strong>未开始</strong></div>
+                  <div class="task-row"><b>第2关</b><span>英语3题：词汇语法、完形与阅读，附中文</span><strong>未开始</strong></div>
+                  <div class="task-row"><b>第3关</b><span>语文4题：积累、古诗文与阅读表达</span><strong>未开始</strong></div>
+                  <div class="task-row"><b>第4关</b><span>物理1题：概念、计算、实验与图像</span><strong>未开始</strong></div>
+                  <div class="task-row"><b>第5关</b><span>化学3题：教材入门、实验与微观概念</span><strong>未开始</strong></div>
+                  <div class="task-row"><b>第6关</b><span>地理2题 + 生物2题：读图、材料与实验探究</span><strong>未开始</strong></div>
+                  <div class="task-row"><b>第7关</b><span>订正：错题看讲解，做对同类变式</span><strong>锁定</strong></div>
                 </div>
               </div>
             </div>
@@ -593,7 +593,7 @@
                 <div class="task-list">
                   <div class="task-row"><b>1</b><span>做题后提交答案</span><strong>必做</strong></div>
                   <div class="task-row"><b>2</b><span>错题/码不准题必须播放讲解</span><strong>必做</strong></div>
-                  <div class="task-row"><b>3</b><span>当天原题重做，后续复习只做同类变式</span><strong>必做</strong></div>
+                  <div class="task-row"><b>3</b><span>讲解后必须做对同类变式，才能进入下一题</span><strong>必做</strong></div>
                 </div>
               </div>
             </div>
@@ -659,7 +659,7 @@
             <div class="panel-head"><h2>家长看板</h2><span class="pill green" id="parentDate"></span></div>
             <div class="panel-body">
               <div class="stats">
-                <div class="stat"><span>今日完成</span><b id="parentCompleted">0/4</b><span>语数英物</span></div>
+                <div class="stat"><span>今日完成</span><b id="parentCompleted">0/7</b><span>七科</span></div>
                 <div class="stat"><span>今日得分</span><b id="parentScore">0</b><span>满分100</span></div>
                 <div class="stat"><span>今日错题</span><b id="parentMistakes">0</b><span>含码不准</span></div>
                 <div class="stat"><span>累计做题</span><b id="parentTotal">0</b><span>道题</span></div>
@@ -699,6 +699,13 @@
     </section>
   </main>
 
+  <script src="question-bank/math.js"></script>
+  <script src="question-bank/english.js"></script>
+  <script src="question-bank/chinese.js"></script>
+  <script src="question-bank/physics.js"></script>
+  <script src="question-bank/chemistry.js"></script>
+  <script src="question-bank/geography.js"></script>
+  <script src="question-bank/biology.js"></script>
   <script>
     const questions = [
       {
@@ -1290,6 +1297,37 @@
 
     addCurriculumCoreBank();
 
+    const externalQuestions = Object.values(window.KUNTAI_BANK || {}).flat();
+    if (externalQuestions.length) {
+      questions.splice(0, questions.length, ...externalQuestions);
+    }
+
+    function enforceQuestionQuality() {
+      const normalize = (text = "") => text
+        .replace(/^同类变式[:：]?/, "")
+        .replace(/[0-9０-９.()\-+×÷=°]+/g, "#")
+        .replace(/\s+/g, "")
+        .replace(/[，。！？、；：“”‘’《》]/g, "")
+        .slice(0, 140);
+      const seenTemplates = new Set();
+      const approved = [];
+      for (const q of questions) {
+        const validAnswer = Number.isInteger(q.answer) && q.answer >= 0 && q.answer < (q.options?.length || 0);
+        const validExplanation = Array.isArray(q.explanation?.steps) && q.explanation.steps.length >= 3;
+        const originalSignature = normalize(q.stem);
+        const variantSignature = normalize(q.variant?.stem);
+        const validVariant = q.variant && variantSignature && variantSignature !== originalSignature;
+        const templateKey = `${q.subject}|${q.point}|${originalSignature}`;
+        if (!validAnswer || !validExplanation || !validVariant || seenTemplates.has(templateKey)) continue;
+        seenTemplates.add(templateKey);
+        q.qualityStatus = "approved";
+        approved.push(q);
+      }
+      questions.splice(0, questions.length, ...approved);
+    }
+
+    enforceQuestionQuality();
+
     const bankPlan = [
       ["数学", 2400, "已学保分、函数几何、综合提升、二次函数/圆/相似预习"],
       ["英语", 2100, "1600-2000核心词、短语、语法、完形、阅读、写作"],
@@ -1306,11 +1344,47 @@
     state.correct ??= 0;
     state.mistakes ??= [];
     state.current ??= 0;
+    state.currentQuestionId ??= "";
+    state.seenQuestionIds ??= [];
     state.practiceSubject ??= "";
+    state.pendingRecoveryId ??= "";
     state.seenByMode ??= {};
+    const localDateKey = () => {
+      const now = new Date();
+      const pad = value => String(value).padStart(2, "0");
+      return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+    };
     state.bySubject ??= {};
-    state.dayStarted ??= new Date().toISOString().slice(0, 10);
-    const subjectTargets = { "数学": 12, "英语": 16, "物理": 10, "语文": 7 };
+    state.dayStarted ??= localDateKey();
+    state.programStartDate ??= state.dayStarted;
+    const subjectTargets = { "数学": 4, "英语": 3, "语文": 4, "物理": 1, "化学": 3, "地理": 2, "生物": 2 };
+    const today = localDateKey();
+    const programDay = Math.min(55, Math.max(1,
+      Math.floor((new Date(`${today}T00:00:00`) - new Date(`${state.programStartDate}T00:00:00`)) / 86400000) + 1
+    ));
+    state.history ??= [];
+    state.dailyDone ??= 0;
+    state.dailyCorrect ??= 0;
+    state.dailyBySubject ??= {};
+    state.todayMistakes ??= [];
+    state.dailyQueue ??= [];
+    if (state.dayStarted !== today) {
+      state.history.push({
+        date: state.dayStarted,
+        done: state.dailyDone,
+        correct: state.dailyCorrect,
+        bySubject: state.dailyBySubject,
+        mistakes: state.todayMistakes
+      });
+      state.dayStarted = today;
+      state.dailyDone = 0;
+      state.dailyCorrect = 0;
+      state.dailyBySubject = {};
+      state.todayMistakes = [];
+      state.dailyQueue = [];
+      state.currentQuestionId = "";
+      state.practiceSubject = "";
+    }
     let sharedReport = null;
     if (location.hash.startsWith("#report=")) {
       try {
@@ -1327,19 +1401,62 @@
     const $ = (s) => document.querySelector(s);
     const $$ = (s) => [...document.querySelectorAll(s)];
 
+    function mixedPool() {
+      const subjects = Object.keys(subjectTargets);
+      const queued = new Set(state.dailyQueue);
+      const groups = Object.fromEntries(subjects.map(subject => {
+        const remaining = Math.max(0, subjectTargets[subject] - (state.dailyBySubject[subject]?.done || 0));
+        const queuedRemaining = state.dailyQueue
+          .map(id => questions.find(q => q.id === id))
+          .filter(q => q?.subject === subject && !state.seenQuestionIds.includes(q.id)).length;
+        const needed = Math.max(0, remaining - queuedRemaining);
+        return [subject, questions
+          .filter(q => q.subject === subject && !state.seenQuestionIds.includes(q.id) && !queued.has(q.id))
+          .slice(0, needed)];
+      }));
+      const additions = [];
+      const maxNeeded = Math.max(0, ...subjects.map(subject => groups[subject].length));
+      for (let round = 0; round < maxNeeded; round += 1) {
+        subjects.forEach(subject => {
+          if (groups[subject][round]) additions.push(groups[subject][round].id);
+        });
+      }
+      state.dailyQueue.push(...additions);
+      return state.dailyQueue.map(id => questions.find(q => q.id === id)).filter(Boolean);
+    }
+
+    function modePool() {
+      return state.practiceSubject
+        ? questions.filter(q => q.subject === state.practiceSubject)
+        : mixedPool();
+    }
+
+    function selectNextQuestion() {
+      const next = modePool().find(q => !state.seenQuestionIds.includes(q.id));
+      if (!next) return null;
+      state.currentQuestionId = next.id;
+      return next;
+    }
+
     function currentQuestion() {
-      const pool = questions.filter(q => q.subject === state.practiceSubject);
-      if (!state.practiceSubject) return questions[state.current] || questions[0];
-      return pool[state.current] || pool[0] || questions[0];
+      const current = questions.find(q => q.id === state.currentQuestionId);
+      if (current && (!state.practiceSubject || current.subject === state.practiceSubject)) return current;
+      return selectNextQuestion() || modePool()[0] || questions[0];
     }
 
     function setNextQuestion() {
-      const pool = state.practiceSubject ? questions.filter(q => q.subject === state.practiceSubject) : questions;
-      if (state.current + 1 >= pool.length) {
-        alert(`当前${state.practiceSubject || "自测"}演示题已做完。正式版需要接入12000题库，才可以保证不重复。`);
+      const dailyComplete = !state.practiceSubject && Object.entries(subjectTargets)
+        .every(([subject, target]) => (state.dailyBySubject[subject]?.done || 0) >= target);
+      if (dailyComplete) {
+        alert("今日七科自测已完成。错题完成同类变式后，可进入专项练习。");
         return false;
       }
-      state.current += 1;
+      state.currentQuestionId = "";
+      const next = selectNextQuestion();
+      if (!next) {
+        alert(`当前${state.practiceSubject || "自测"}题库已全部完成，可到错题讲解继续回收薄弱点。`);
+        return false;
+      }
       return true;
     }
 
@@ -1349,11 +1466,13 @@
     }
 
     function updateStats() {
-      $("#doneCount").textContent = state.done;
-      $("#accuracy").textContent = state.done ? Math.round(state.correct / state.done * 100) + "%" : "0%";
+      $("#doneCount").textContent = state.dailyDone;
+      $("#accuracy").textContent = state.dailyDone ? Math.round(state.dailyCorrect / state.dailyDone * 100) + "%" : "0%";
       $("#mistakeCount").textContent = state.mistakes.length;
       $("#mistakeNavCount").textContent = state.mistakes.length;
-      $("#todayScore").textContent = state.done ? Math.round(state.correct / state.done * 100) : 0;
+      $("#todayScore").textContent = state.dailyDone ? Math.round(state.dailyCorrect / state.dailyDone * 100) : 0;
+      $("#navDay").textContent = `Day ${programDay}`;
+      $("#taskDay").textContent = `Day ${programDay}`;
     }
 
     function renderQuestion() {
@@ -1371,6 +1490,8 @@
       $("#options").innerHTML = q.options.map((op, i) => `<button class="option" data-i="${i}">${op}</button>`).join("");
       $("#submitBtn").classList.remove("hidden");
       $("#nextBtn").classList.add("hidden");
+      $("#nextBtn").disabled = false;
+      $("#nextBtn").textContent = "下一题";
       $$("input[name='confidence']").forEach((r, i) => r.checked = i === 0);
       $$(".option").forEach(btn => btn.addEventListener("click", () => {
         if (submitted) return;
@@ -1381,21 +1502,21 @@
     }
 
     function addMistake(q, reason, answerIndex = selected) {
-      if (!state.mistakes.some(m => m.key === q.id + "-" + reason)) {
-        state.mistakes.unshift({
-          key: q.id + "-" + reason,
-          id: q.id,
-          subject: q.subject,
-          point: q.point,
-          reason,
-          stem: q.stem,
-          answer: q.options[q.answer],
-          student: answerIndex === null || answerIndex === undefined ? "未选择" : q.options[answerIndex],
-          reviewDue: true,
-          reviewPlan: ["当日原题重做", "次日保分变式", "3天同类变式", "7天混合小测", "15天回收检查"],
-          createdAt: new Date().toLocaleString()
-        });
-      }
+      const item = {
+        key: q.id + "-" + reason,
+        id: q.id,
+        subject: q.subject,
+        point: q.point,
+        reason,
+        stem: q.stem,
+        answer: q.options[q.answer],
+        student: answerIndex === null || answerIndex === undefined ? "未选择" : q.options[answerIndex],
+        reviewDue: true,
+        reviewPlan: ["当日讲解后变式", "次日保分变式", "3天同类变式", "7天混合小测", "15天回收检查"],
+        createdAt: new Date().toLocaleString()
+      };
+      if (!state.mistakes.some(m => m.key === item.key)) state.mistakes.unshift(item);
+      if (!state.todayMistakes.some(m => m.key === item.key)) state.todayMistakes.unshift(item);
     }
 
     function submitAnswer(forceUnsteady = false) {
@@ -1410,16 +1531,29 @@
       const modeKey = state.practiceSubject || "自测";
       state.seenByMode[modeKey] ??= [];
       if (!state.seenByMode[modeKey].includes(q.id)) state.seenByMode[modeKey].push(q.id);
+      if (!state.seenQuestionIds.includes(q.id)) state.seenQuestionIds.push(q.id);
       const isRight = selected === q.answer;
       state.bySubject[q.subject] ??= { done: 0, correct: 0, mistakes: 0 };
       state.bySubject[q.subject].done += 1;
+      if (!state.practiceSubject) {
+        state.dailyDone += 1;
+        state.dailyBySubject[q.subject] ??= { done: 0, correct: 0, mistakes: 0 };
+        state.dailyBySubject[q.subject].done += 1;
+      }
       if (isRight && confidence === "steady" && !forceUnsteady) {
         state.bySubject[q.subject].correct += 1;
+        if (!state.practiceSubject) {
+          state.dailyCorrect += 1;
+          state.dailyBySubject[q.subject].correct += 1;
+        }
       } else {
         state.bySubject[q.subject].mistakes += 1;
+        if (!state.practiceSubject) state.dailyBySubject[q.subject].mistakes += 1;
       }
       if (isRight && confidence === "steady" && !forceUnsteady) state.correct += 1;
-      if (!isRight || confidence !== "steady" || forceUnsteady) {
+      const needsRecovery = !isRight || confidence !== "steady" || forceUnsteady;
+      if (needsRecovery) {
+        state.pendingRecoveryId = q.id;
         addMistake(q, isRight ? "码不准/超时题" : "错题", selected);
         renderPlayer(q, "#inlinePlayer", isRight ? "这道题虽然答对了，但你标记为不稳，系统仍会安排讲解和变式回收。" : "这道题已自动进入错题讲解。");
       }
@@ -1429,6 +1563,8 @@
       });
       $("#submitBtn").classList.add("hidden");
       $("#nextBtn").classList.remove("hidden");
+      $("#nextBtn").disabled = needsRecovery;
+      $("#nextBtn").textContent = needsRecovery ? "做对同类题后继续" : "下一题";
       save();
     }
 
@@ -1518,6 +1654,12 @@
         if (chosen === v.answer) {
           status.textContent = "当日通过：已进入后续回收链，后面只推同类变式，不推原题。";
           status.style.color = "#1f6655";
+          if (target.id === "inlinePlayer") {
+            state.pendingRecoveryId = "";
+            $("#nextBtn").disabled = false;
+            $("#nextBtn").textContent = "下一题";
+            save();
+          }
         } else {
           status.textContent = "还没通过：回看讲解，再做一遍同类变式。";
           status.style.color = "#8b332b";
@@ -1566,7 +1708,7 @@
           <span class="pill">${m.subject} · ${m.point}</span>
           <p>${m.stem}</p>
           <p>学生答案：${m.student}<br>正确答案：${m.answer}</p>
-          <p>回收链：${(m.reviewPlan || ["当日原题重做", "次日保分变式", "3天同类变式", "7天混合小测", "15天回收检查"]).join(" → ")}</p>
+          <p>回收链：${(m.reviewPlan || ["当日讲解后变式", "次日保分变式", "3天同类变式", "7天混合小测", "15天回收检查"]).join(" → ")}</p>
           <button class="primary" data-explain="${i}">播放动态讲解</button>
         </div>
       `).join("");
@@ -1580,23 +1722,24 @@
     function reportData() {
       return sharedReport || {
         date: state.dayStarted,
-        done: state.done,
-        correct: state.correct,
-        mistakes: state.mistakes,
-        bySubject: state.bySubject
+        done: state.dailyDone,
+        correct: state.dailyCorrect,
+        mistakes: state.todayMistakes,
+        bySubject: state.dailyBySubject,
+        totalDone: state.done
       };
     }
 
     function renderParent() {
       const report = reportData();
-      const subjects = ["数学", "英语", "物理", "语文"];
+      const subjects = Object.keys(subjectTargets);
       const completed = subjects.filter(subject => (report.bySubject?.[subject]?.done || 0) >= subjectTargets[subject]).length;
       const score = report.done ? Math.round((report.correct || 0) / report.done * 100) : 0;
-      $("#parentDate").textContent = report.date || new Date().toISOString().slice(0, 10);
-      $("#parentCompleted").textContent = `${completed}/4`;
+      $("#parentDate").textContent = report.date || localDateKey();
+      $("#parentCompleted").textContent = `${completed}/${subjects.length}`;
       $("#parentScore").textContent = score;
       $("#parentMistakes").textContent = report.mistakes?.length || 0;
-      $("#parentTotal").textContent = report.done || 0;
+      $("#parentTotal").textContent = report.totalDone ?? report.done ?? 0;
       $("#parentSubjects").innerHTML = subjects.map(subject => {
         const item = report.bySubject?.[subject] || { done: 0, correct: 0, mistakes: 0 };
         const subjectScore = item.done ? Math.round(item.correct / item.done * 100) : 0;
@@ -1626,9 +1769,30 @@
 
     $$(".nav button, .top-actions [data-view]").forEach(btn => btn.addEventListener("click", () => switchView(btn.dataset.view)));
     $$("#startDailyBtn, #startPracticeBtn, #startPreviewBtn").forEach(btn => btn.addEventListener("click", () => {
+      if (state.pendingRecoveryId) {
+        alert("先完成当前错题的同类变式，做对后才能继续。");
+        const pending = questions.find(q => q.id === state.pendingRecoveryId);
+        if (pending) {
+          state.currentQuestionId = pending.id;
+          renderQuestion();
+          renderPlayer(pending, "#inlinePlayer", "这道题仍在订正中：听完讲解并做对同类变式。");
+          $("#submitBtn").classList.add("hidden");
+          $("#nextBtn").classList.remove("hidden");
+          $("#nextBtn").disabled = true;
+          $("#nextBtn").textContent = "做对同类题后继续";
+        }
+        return;
+      }
       if (btn.id === "startDailyBtn") {
+        const dailyComplete = Object.entries(subjectTargets)
+          .every(([subject, target]) => (state.dailyBySubject[subject]?.done || 0) >= target);
+        if (dailyComplete) {
+          alert("今日七科自测已完成，请进入错题回收或专项练习。");
+          return;
+        }
         state.practiceSubject = "";
-        state.current = 0;
+        state.currentQuestionId = "";
+        selectNextQuestion();
         save();
         $("#practiceMode").textContent = "今日自测 · 按科目分段诊断";
         $$("[data-practice-subject]").forEach(b => b.classList.remove("active"));
@@ -1637,11 +1801,16 @@
       (btn.id === "startPracticeBtn" ? $("#practiceRoute") : $(".question-card")).scrollIntoView({ behavior: "smooth", block: "start" });
     }));
     $$("[data-practice-subject]").forEach(btn => btn.addEventListener("click", () => {
+      if (state.pendingRecoveryId) {
+        alert("当前错题还没订正，先做对讲解下方的同类变式。");
+        return;
+      }
       const subject = btn.dataset.practiceSubject;
       const pool = questions.filter(q => q.subject === subject);
       if (pool.length) {
         state.practiceSubject = subject;
-        state.current = 0;
+        state.currentQuestionId = "";
+        selectNextQuestion();
         save();
         renderQuestion();
         $("#practiceMode").textContent = `${subject}专项 · 按薄弱点组题`;
@@ -1666,10 +1835,11 @@
     $("#shareReportBtn").addEventListener("click", () => {
       const payload = {
         date: state.dayStarted,
-        done: state.done,
-        correct: state.correct,
-        mistakes: state.mistakes.slice(0, 50),
-        bySubject: state.bySubject
+        done: state.dailyDone,
+        correct: state.dailyCorrect,
+        mistakes: state.todayMistakes.slice(0, 50),
+        bySubject: state.dailyBySubject,
+        totalDone: state.done
       };
       reportUrl = `${location.origin}${location.pathname}#report=${btoa(unescape(encodeURIComponent(JSON.stringify(payload))))}`;
       $("#copyReportBtn").classList.remove("hidden");
@@ -1682,6 +1852,20 @@
     });
 
     renderQuestion();
+    if (state.pendingRecoveryId) {
+      const pending = questions.find(q => q.id === state.pendingRecoveryId);
+      if (pending) {
+        state.currentQuestionId = pending.id;
+        renderQuestion();
+        renderPlayer(pending, "#inlinePlayer", "继续昨日未完成的订正：听讲解并做对同类变式。");
+        $("#submitBtn").classList.add("hidden");
+        $("#nextBtn").classList.remove("hidden");
+        $("#nextBtn").disabled = true;
+        $("#nextBtn").textContent = "做对同类题后继续";
+      } else {
+        state.pendingRecoveryId = "";
+      }
+    }
     updateStats();
     if (sharedReport) switchView("parent");
   </script>

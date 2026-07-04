@@ -1,0 +1,174 @@
+﻿{
+  "generatedAt": "2026-07-04T02:08:44.744Z",
+  "totals": {
+    "base": 1161,
+    "usableWithVariants": 2322,
+    "errors": 0
+  },
+  "loadErrors": [],
+  "subjects": {
+    "数学": {
+      "base": 230,
+      "usableWithVariants": 460,
+      "points": 23,
+      "answers": [
+        58,
+        58,
+        57,
+        57
+      ],
+      "variantAnswers": [
+        57,
+        57,
+        58,
+        58
+      ],
+      "difficulties": {
+        "保分": 128,
+        "提升": 80,
+        "拔高": 18,
+        "预习保分": 4
+      },
+      "errors": []
+    },
+    "英语": {
+      "base": 200,
+      "usableWithVariants": 400,
+      "points": 113,
+      "answers": [
+        50,
+        50,
+        50,
+        50
+      ],
+      "variantAnswers": [
+        50,
+        50,
+        50,
+        50
+      ],
+      "difficulties": {
+        "保分": 110,
+        "提升": 71,
+        "拔高": 19
+      },
+      "errors": []
+    },
+    "语文": {
+      "base": 220,
+      "usableWithVariants": 440,
+      "points": 112,
+      "answers": [
+        55,
+        55,
+        55,
+        55
+      ],
+      "variantAnswers": [
+        55,
+        55,
+        55,
+        55
+      ],
+      "difficulties": {
+        "保分": 100,
+        "提升": 94,
+        "预习保分": 20,
+        "拔高": 6
+      },
+      "errors": []
+    },
+    "物理": {
+      "base": 55,
+      "usableWithVariants": 110,
+      "points": 54,
+      "answers": [
+        14,
+        14,
+        14,
+        13
+      ],
+      "variantAnswers": [
+        14,
+        13,
+        14,
+        14
+      ],
+      "difficulties": {
+        "保分": 27,
+        "提升": 27,
+        "拔高": 1
+      },
+      "errors": []
+    },
+    "化学": {
+      "base": 175,
+      "usableWithVariants": 350,
+      "points": 175,
+      "answers": [
+        44,
+        44,
+        44,
+        43
+      ],
+      "variantAnswers": [
+        43,
+        44,
+        44,
+        44
+      ],
+      "difficulties": {
+        "保分": 61,
+        "提升": 85,
+        "拔高": 29
+      },
+      "errors": []
+    },
+    "地理": {
+      "base": 140,
+      "usableWithVariants": 280,
+      "points": 10,
+      "answers": [
+        35,
+        35,
+        35,
+        35
+      ],
+      "variantAnswers": [
+        35,
+        35,
+        35,
+        35
+      ],
+      "difficulties": {
+        "保分": 52,
+        "提升": 58,
+        "拔高": 30
+      },
+      "errors": []
+    },
+    "生物": {
+      "base": 141,
+      "usableWithVariants": 282,
+      "points": 141,
+      "answers": [
+        36,
+        35,
+        35,
+        35
+      ],
+      "variantAnswers": [
+        35,
+        35,
+        36,
+        35
+      ],
+      "difficulties": {
+        "保分": 53,
+        "提升": 59,
+        "拔高": 29
+      },
+      "errors": []
+    }
+  }
+}
