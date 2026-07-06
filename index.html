@@ -319,6 +319,24 @@
       gap: 8px;
       padding: 0 18px 18px;
     }
+    .text-answer {
+      margin: 0 18px 18px;
+      width: calc(100% - 36px);
+      min-height: 52px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px 14px;
+      font: inherit;
+      resize: vertical;
+    }
+    .answer-reveal {
+      margin: 0 18px 18px;
+      padding: 10px 12px;
+      border-left: 4px solid var(--green);
+      background: var(--green-2);
+      color: #1f6655;
+      line-height: 1.6;
+    }
     .option {
       text-align: left;
       border: 1px solid var(--line);
@@ -622,6 +640,8 @@
             <div class="stem" id="questionStem"></div>
             <div class="translation hidden" id="questionTranslation"></div>
             <div class="options" id="options"></div>
+            <textarea class="text-answer hidden" id="textAnswer" placeholder="在这里输入答案"></textarea>
+            <div class="answer-reveal hidden" id="answerReveal"></div>
             <div class="answer-row">
               <div class="confidence">
                 <span>做题感觉：</span>
@@ -707,6 +727,9 @@
   <script src="question-bank/chemistry.js"></script>
   <script src="question-bank/geography.js"></script>
   <script src="question-bank/biology.js"></script>
+  <script src="question-bank/kuntai-english-priority.js"></script>
+  <script src="question-bank/kuntai-physics-priority.js"></script>
+  <script src="question-bank/priority-engine.js"></script>
   <script>
     const questions = [
       {
@@ -1299,8 +1322,9 @@
     addCurriculumCoreBank();
 
     const externalQuestions = Object.values(window.KUNTAI_BANK || {}).flat();
+    const priorityQuestions = Object.values(window.KUNTAI_PRIORITY_BANK || {}).flat();
     if (externalQuestions.length) {
-      questions.splice(0, questions.length, ...externalQuestions);
+      questions.splice(0, questions.length, ...externalQuestions, ...priorityQuestions);
     }
 
     function enforceQuestionQuality() {
@@ -1313,10 +1337,14 @@
       const seenTemplates = new Set();
       const approved = [];
       for (const q of questions) {
-        const validAnswer = Number.isInteger(q.answer) && q.answer >= 0 && q.answer < (q.options?.length || 0);
+        const answerMode = q.answerMode || "choice";
+        const validChoice = Number.isInteger(q.answer) && q.answer >= 0 && q.answer < (q.options?.length || 0);
+        const validText = answerMode !== "choice"
+          && Boolean(q.acceptedAnswers?.length || q.requiredKeywords?.length);
+        const validAnswer = answerMode === "choice" ? validChoice : validText;
         const validExplanation = Array.isArray(q.explanation?.steps) && q.explanation.steps.length >= 3;
-        const originalSignature = normalize(q.stem);
-        const variantSignature = normalize(q.variant?.stem);
+        const originalSignature = normalize(`${q.stem}|${q.audioText || ""}`);
+        const variantSignature = normalize(`${q.variant?.stem || ""}|${q.variant?.audioText || ""}`);
         const validVariant = q.variant && variantSignature && variantSignature !== originalSignature;
         const templateKey = `${q.subject}|${q.point}|${originalSignature}`;
         if (!validAnswer || !validExplanation || !validVariant || seenTemplates.has(templateKey)) continue;
@@ -1358,17 +1386,32 @@
     state.bySubject ??= {};
     state.dayStarted ??= localDateKey();
     state.programStartDate ??= state.dayStarted;
-    const subjectTargets = { "数学": 4, "英语": 3, "语文": 4, "物理": 1, "化学": 3, "地理": 2, "生物": 2 };
     const today = localDateKey();
-    const programDay = Math.min(55, Math.max(1,
+    let programDay = Math.min(55, Math.max(1,
       Math.floor((new Date(`${today}T00:00:00`) - new Date(`${state.programStartDate}T00:00:00`)) / 86400000) + 1
     ));
+    let subjectTargets = window.KuntaiPriorityEngine.targetsForDay(programDay);
     state.history ??= [];
     state.dailyDone ??= 0;
     state.dailyCorrect ??= 0;
     state.dailyBySubject ??= {};
     state.todayMistakes ??= [];
     state.dailyQueue ??= [];
+    state.weaknessStats ??= {};
+    if (state.schedulerVersion !== "kuntai-weakness-v1") {
+      state.schedulerVersion = "kuntai-weakness-v1";
+      state.programStartDate = today;
+      programDay = 1;
+      subjectTargets = window.KuntaiPriorityEngine.targetsForDay(programDay);
+      state.dayStarted = today;
+      state.dailyDone = 0;
+      state.dailyCorrect = 0;
+      state.dailyBySubject = {};
+      state.todayMistakes = [];
+      state.dailyQueue = [];
+      state.currentQuestionId = "";
+      localStorage.setItem("chengduTutorState", JSON.stringify(state));
+    }
     if (state.dayStarted !== today) {
       state.history.push({
         date: state.dayStarted,
@@ -1415,9 +1458,15 @@
           .map(id => questions.find(q => q.id === id))
           .filter(q => q?.subject === subject && !state.seenQuestionIds.includes(q.id)).length;
         const needed = Math.max(0, remaining - queuedRemaining);
-        return [subject, questions
-          .filter(q => q.subject === subject && !state.seenQuestionIds.includes(q.id) && !queued.has(q.id))
-          .slice(0, needed)];
+        const available = questions
+          .filter(q => q.subject === subject && !state.seenQuestionIds.includes(q.id) && !queued.has(q.id));
+        const priority = programDay <= 21
+          ? window.KuntaiPriorityEngine.interleaveByWeakness(
+            available.filter(q => q.priorityProfile === "kuntai-2026-07")
+          )
+          : [];
+        const regular = available.filter(q => q.priorityProfile !== "kuntai-2026-07");
+        return [subject, [...priority, ...regular].slice(0, needed)];
       }));
       const additions = [];
       const maxNeeded = Math.max(0, ...subjects.map(subject => groups[subject].length));
@@ -1478,10 +1527,32 @@
       $("#todayScore").textContent = state.dailyDone ? Math.round(state.dailyCorrect / state.dailyDone * 100) : 0;
       $("#navDay").textContent = `Day ${programDay}`;
       $("#taskDay").textContent = `Day ${programDay}`;
+      const taskCopy = programDay <= 21
+        ? [
+          "数学3题：函数、几何、方程薄弱点",
+          "英语5题：听力、课内听写、语境填空、阅读表达、作文语法",
+          "语文3题：古诗文、阅读与表达",
+          "物理3题：基础辨析、浮力密度计、B卷模型与函数关系",
+          "化学2题：教材入门、实验与微观概念",
+          "地理1题 + 生物2题：读图、材料与实验探究"
+        ]
+        : [
+          "数学4题：方程、函数、几何与综合应用",
+          "英语3题：词汇语法、完形与阅读",
+          "语文4题：积累、古诗文与阅读表达",
+          "物理1题：概念、计算、实验与图像",
+          "化学3题：教材、实验与微观概念",
+          "地理2题 + 生物2题：读图、材料与实验探究"
+        ];
+      const taskRows = $$(".today-box .panel")[0]?.querySelectorAll(".task-row span") || [];
+      taskCopy.forEach((text, index) => {
+        if (taskRows[index]) taskRows[index].textContent = text;
+      });
     }
 
     function renderQuestion() {
       const q = currentQuestion();
+      const answerMode = q.answerMode || "choice";
       stopEnglishAudio();
       englishAudioPlaying = false;
       selected = null;
@@ -1496,7 +1567,16 @@
       $("#questionStem").textContent = q.stem;
       $("#questionTranslation").classList.toggle("hidden", !q.translation);
       $("#questionTranslation").textContent = q.translation || "";
-      $("#options").innerHTML = q.options.map((op, i) => `<button class="option" data-i="${i}">${op}</button>`).join("");
+      $("#options").classList.toggle("hidden", answerMode !== "choice");
+      $("#options").innerHTML = (q.options || []).map((op, i) => `<button class="option" data-i="${i}">${op}</button>`).join("");
+      $("#textAnswer").classList.toggle("hidden", answerMode === "choice");
+      $("#textAnswer").value = "";
+      $("#textAnswer").disabled = false;
+      $("#textAnswer").placeholder = answerMode === "keywords"
+        ? "用英文完整回答，注意关键词和语法"
+        : "输入听到的英文或订正后的完整句子";
+      $("#answerReveal").classList.add("hidden");
+      $("#answerReveal").textContent = "";
       $("#submitBtn").classList.remove("hidden");
       $("#nextBtn").classList.add("hidden");
       $("#nextBtn").disabled = false;
@@ -1510,7 +1590,12 @@
       }));
     }
 
-    function addMistake(q, reason, answerIndex = selected) {
+    function answerText(q) {
+      if ((q.answerMode || "choice") === "choice") return q.options[q.answer];
+      return q.acceptedAnswers?.[0] || (q.requiredKeywords || []).join("、");
+    }
+
+    function addMistake(q, reason, studentAnswer = selected) {
       const item = {
         key: q.id + "-" + reason,
         id: q.id,
@@ -1518,8 +1603,10 @@
         point: q.point,
         reason,
         stem: q.stem,
-        answer: q.options[q.answer],
-        student: answerIndex === null || answerIndex === undefined ? "未选择" : q.options[answerIndex],
+        answer: answerText(q),
+        student: (q.answerMode || "choice") === "choice"
+          ? (studentAnswer === null || studentAnswer === undefined ? "未选择" : q.options[studentAnswer])
+          : (String(studentAnswer || "").trim() || "未作答"),
         reviewDue: true,
         reviewPlan: ["当日讲解后变式", "次日保分变式", "3天同类变式", "7天混合小测", "15天回收检查"],
         createdAt: new Date().toLocaleString()
@@ -1530,9 +1617,11 @@
 
     function submitAnswer(forceUnsteady = false) {
       const q = currentQuestion();
+      const answerMode = q.answerMode || "choice";
+      const response = answerMode === "choice" ? selected : $("#textAnswer").value;
       const confidence = $("input[name='confidence']:checked").value;
-      if (selected === null && !forceUnsteady) {
-        alert("先选一个答案，或者点“标记不稳”。");
+      if ((response === null || String(response).trim() === "") && !forceUnsteady) {
+        alert(answerMode === "choice" ? "先选一个答案，或者点“标记不稳”。" : "先输入答案，或者点“标记不稳”。");
         return;
       }
       submitted = true;
@@ -1541,7 +1630,20 @@
       state.seenByMode[modeKey] ??= [];
       if (!state.seenByMode[modeKey].includes(q.id)) state.seenByMode[modeKey].push(q.id);
       if (!state.seenQuestionIds.includes(q.id)) state.seenQuestionIds.push(q.id);
-      const isRight = selected === q.answer;
+      const isRight = window.KuntaiPriorityEngine.evaluateAnswer(q, response);
+      if (q.weaknessCode) {
+        const weakness = state.weaknessStats[q.weaknessCode] ??= {
+          subject: q.subject,
+          point: q.point,
+          done: 0,
+          correct: 0,
+          recent: []
+        };
+        weakness.done += 1;
+        if (isRight && confidence === "steady" && !forceUnsteady) weakness.correct += 1;
+        weakness.recent.push(isRight && confidence === "steady" && !forceUnsteady ? 1 : 0);
+        weakness.recent = weakness.recent.slice(-7);
+      }
       state.bySubject[q.subject] ??= { done: 0, correct: 0, mistakes: 0 };
       state.bySubject[q.subject].done += 1;
       if (!state.practiceSubject) {
@@ -1563,13 +1665,18 @@
       const needsRecovery = !isRight || confidence !== "steady" || forceUnsteady;
       if (needsRecovery) {
         state.pendingRecoveryId = q.id;
-        addMistake(q, isRight ? "码不准/超时题" : "错题", selected);
+        addMistake(q, isRight ? "码不准/超时题" : "错题", response);
         renderPlayer(q, "#inlinePlayer", isRight ? "这道题虽然答对了，但你标记为不稳，系统仍会安排讲解和变式回收。" : "这道题已自动进入错题讲解。");
       }
       $$(".option").forEach((btn, i) => {
         if (i === q.answer) btn.classList.add("correct");
         if (i === selected && i !== q.answer) btn.classList.add("wrong");
       });
+      $("#textAnswer").disabled = true;
+      if (q.revealAfterSubmit) {
+        $("#answerReveal").textContent = q.revealAfterSubmit;
+        $("#answerReveal").classList.remove("hidden");
+      }
       $("#submitBtn").classList.add("hidden");
       $("#nextBtn").classList.remove("hidden");
       $("#nextBtn").disabled = needsRecovery;
@@ -1757,26 +1864,28 @@
       const v = q.variant;
       const box = target.querySelector("#variantBox");
       if (!v || !box) return;
+      const variantMode = v.answerMode || "choice";
       box.innerHTML = `
         <div class="variant-box">
           <h3>当日同类变式</h3>
           <p>${v.stem}</p>
-          <div class="variant-options">
-            ${v.options.map((op, i) => `<button data-variant="${i}">${op}</button>`).join("")}
-          </div>
+          ${variantMode === "choice" ? `
+            <div class="variant-options">
+              ${(v.options || []).map((op, i) => `<button data-variant="${i}">${op}</button>`).join("")}
+            </div>
+          ` : `
+            <textarea class="text-answer" data-variant-text placeholder="输入答案"></textarea>
+            <button class="primary" data-check-variant>提交变式答案</button>
+          `}
           <div class="play-status" style="margin-top:10px">做对这道变式，今天这类错题才算通过。</div>
         </div>
       `;
-      box.querySelectorAll("[data-variant]").forEach(btn => btn.addEventListener("click", () => {
-        const chosen = Number(btn.dataset.variant);
-        box.querySelectorAll("[data-variant]").forEach((b, i) => {
-          b.classList.toggle("correct", i === v.answer);
-          b.classList.toggle("wrong", i === chosen && i !== v.answer);
-        });
+      const passVariant = passed => {
         const status = box.querySelector(".play-status");
-        if (chosen === v.answer) {
+        if (passed) {
           status.textContent = "当日通过：已进入后续回收链，后面只推同类变式，不推原题。";
           status.style.color = "#1f6655";
+          if (v.revealAfterSubmit) status.textContent += ` ${v.revealAfterSubmit}`;
           if (target.id === "inlinePlayer") {
             state.pendingRecoveryId = "";
             $("#nextBtn").disabled = false;
@@ -1787,7 +1896,19 @@
           status.textContent = "还没通过：回看讲解，再做一遍同类变式。";
           status.style.color = "#8b332b";
         }
+      };
+      box.querySelectorAll("[data-variant]").forEach(btn => btn.addEventListener("click", () => {
+        const chosen = Number(btn.dataset.variant);
+        box.querySelectorAll("[data-variant]").forEach((b, i) => {
+          b.classList.toggle("correct", i === v.answer);
+          b.classList.toggle("wrong", i === chosen && i !== v.answer);
+        });
+        passVariant(chosen === v.answer);
       }));
+      box.querySelector("[data-check-variant]")?.addEventListener("click", () => {
+        const response = box.querySelector("[data-variant-text]").value;
+        passVariant(window.KuntaiPriorityEngine.evaluateAnswer(v, response));
+      });
     }
 
     function showStep(target, i, q) {
@@ -1879,7 +2000,20 @@
         weakCounts[key] = (weakCounts[key] || 0) + 1;
       });
       const weak = Object.entries(weakCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
-      $("#parentWeakPoints").textContent = weak.length ? weak.map(([name, count]) => `${name}（${count}题）`).join("、") : "暂无数据";
+      const profile = Object.values(state.weaknessStats || {})
+        .map(item => {
+          const recentRate = item.recent?.length
+            ? Math.round(item.recent.reduce((sum, value) => sum + value, 0) / item.recent.length * 100)
+            : 0;
+          const status = item.recent?.length >= 7 && recentRate >= 85
+            ? "已达标回收"
+            : recentRate < 80 ? "继续强化" : "重点补弱";
+          return `${item.subject}·${item.point}：${recentRate}%（${status}）`;
+        })
+        .slice(0, 8);
+      $("#parentWeakPoints").textContent = profile.length
+        ? profile.join("；")
+        : (weak.length ? weak.map(([name, count]) => `${name}（${count}题）`).join("、") : "暂无数据");
     }
 
     function switchView(name) {
@@ -1953,7 +2087,7 @@
         return;
       }
       const q = currentQuestion();
-      const text = [q.stem, ...q.options].join(". ");
+      const text = q.audioText || [q.stem, ...(q.options || [])].join(". ");
       englishAudioPlaying = true;
       button.textContent = "停止朗读";
       status.textContent = "正在加载英语音频";

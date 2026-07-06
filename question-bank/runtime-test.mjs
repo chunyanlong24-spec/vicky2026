@@ -18,7 +18,6 @@ const files = [
   ["geography.js", "geography", "地理"],
   ["biology.js", "biology", "生物"]
 ];
-const targets = { 数学: 4, 英语: 3, 语文: 4, 物理: 1, 化学: 3, 地理: 2, 生物: 2 };
 const context = vm.createContext({ window: {} });
 
 function assert(condition, message) {
@@ -30,9 +29,17 @@ for (const [file] of files) {
   assert(fs.existsSync(target), `缺少题库文件 ${file}`);
   vm.runInContext(fs.readFileSync(target, "utf8"), context, { filename: file });
 }
+for (const file of ["kuntai-english-priority.js", "kuntai-physics-priority.js", "priority-engine.js"]) {
+  const target = path.join(bankDir, file);
+  assert(fs.existsSync(target), `缺少个性化文件 ${file}`);
+  vm.runInContext(fs.readFileSync(target, "utf8"), context, { filename: file });
+}
 
 const html = fs.readFileSync(htmlPath, "utf8");
 for (const [file] of files) {
+  assert(html.includes(`src="question-bank/${file}"`), `网页未加载 ${file}`);
+}
+for (const file of ["kuntai-english-priority.js", "kuntai-physics-priority.js", "priority-engine.js"]) {
   assert(html.includes(`src="question-bank/${file}"`), `网页未加载 ${file}`);
 }
 const inlineScripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)]
@@ -45,8 +52,15 @@ const questions = files.flatMap(([, key, subject]) => {
   assert(Array.isArray(rows), `${subject}题库未注册`);
   return rows;
 });
+const priorityQuestions = Object.values(context.window.KUNTAI_PRIORITY_BANK || {}).flat();
+questions.push(...priorityQuestions);
 assert(new Set(questions.map((question) => question.id)).size === questions.length, "题目ID存在重复");
-assert(questions.every((question) => question.variant?.stem && question.variant?.options?.length === 4), "存在缺少变式的题目");
+assert(questions.every((question) => {
+  if (!question.variant?.stem) return false;
+  return (question.variant.answerMode || "choice") === "choice"
+    ? question.variant.options?.length === 4
+    : Boolean(question.variant.acceptedAnswers?.length || question.variant.requiredKeywords?.length);
+}), "存在缺少变式的题目");
 
 const webpageNormalize = (text = "") => text
   .replace(/^同类变式[:：]?/, "")
@@ -57,12 +71,14 @@ const webpageNormalize = (text = "") => text
 const webpageSeen = new Set();
 const webpageRejected = [];
 for (const question of questions) {
-  const signature = webpageNormalize(question.stem);
-  const variantSignature = webpageNormalize(question.variant?.stem);
+  const signature = webpageNormalize(`${question.stem}|${question.audioText || ""}`);
+  const variantSignature = webpageNormalize(`${question.variant?.stem || ""}|${question.variant?.audioText || ""}`);
   const templateKey = `${question.subject}|${question.point}|${signature}`;
-  const accepted = Number.isInteger(question.answer) &&
-    question.answer >= 0 &&
-    question.answer < (question.options?.length || 0) &&
+  const answerMode = question.answerMode || "choice";
+  const validAnswer = answerMode === "choice"
+    ? Number.isInteger(question.answer) && question.answer >= 0 && question.answer < (question.options?.length || 0)
+    : Boolean(question.acceptedAnswers?.length || question.requiredKeywords?.length);
+  const accepted = validAnswer &&
     Array.isArray(question.explanation?.steps) &&
     question.explanation.steps.length >= 3 &&
     variantSignature &&
@@ -77,10 +93,16 @@ const used = new Set();
 const dayReports = [];
 for (let day = 1; day <= 55; day += 1) {
   const report = { day, total: 0, subjects: {} };
+  const targets = context.window.KuntaiPriorityEngine.targetsForDay(day);
   for (const [subject, target] of Object.entries(targets)) {
-    const selected = questions
-      .filter((question) => question.subject === subject && !used.has(question.id))
-      .slice(0, target);
+    const available = questions.filter((question) => question.subject === subject && !used.has(question.id));
+    const priority = day <= 21
+      ? context.window.KuntaiPriorityEngine.interleaveByWeakness(
+        available.filter(question => question.priorityProfile === "kuntai-2026-07")
+      )
+      : [];
+    const regular = available.filter(question => question.priorityProfile !== "kuntai-2026-07");
+    const selected = [...priority, ...regular].slice(0, target);
     assert(selected.length === target, `第${day}天${subject}题库不足`);
     selected.forEach((question) => used.add(question.id));
     report.subjects[subject] = selected.length;
@@ -89,6 +111,10 @@ for (let day = 1; day <= 55; day += 1) {
   assert(report.total === 19, `第${day}天题量不是19`);
   dayReports.push(report);
 }
+assert(dayReports[0].subjects.英语 === 5 && dayReports[0].subjects.物理 === 3, "前21天未优先英语5题、物理3题");
+assert(dayReports[20].subjects.英语 === 5 && dayReports[20].subjects.物理 === 3, "第21天个性化配额错误");
+assert(dayReports[21].subjects.英语 === 3 && dayReports[21].subjects.物理 === 1, "第22天未切回常规配额");
+assert(priorityQuestions.every(question => used.has(question.id)), "前21天个性化母题未全部排入");
 
 const summary = {
   bankBase: questions.length,
