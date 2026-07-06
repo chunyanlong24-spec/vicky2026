@@ -204,13 +204,13 @@
 
   reading.forEach((row, index) => {
     const stem = `${row[0]}\n\n${row[1]}`;
-    const vStem = `${row[5]}\n\n${row[6]}`;
+    const vStem = `${row[4]}\n\n${row[5]}`;
     textQuestion(
       `kuntai-en-reading-${String(index + 1).padStart(3, "0")}`,
       "EN_B_READING_RESPONSE", "B卷阅读表达·短答", "提升", "text",
       stem, "", row[2], "先定位题目关键词，再用原文信息组成简洁完整的英文答案。",
       `参考答案：${row[2][0]}`,
-      { stem: vStem, answers: row[7], requiredKeywords: [], reveal: `参考答案：${row[7][0]}` }
+      { stem: vStem, answers: row[6], requiredKeywords: [], reveal: `参考答案：${row[6][0]}` }
     );
     bank[bank.length - 1].requiredKeywords = row[3];
   });
