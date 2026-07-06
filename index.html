@@ -1480,9 +1480,13 @@
     }
 
     function modePool() {
-      return state.practiceSubject
-        ? questions.filter(q => q.subject === state.practiceSubject)
-        : mixedPool();
+      if (!state.practiceSubject) return mixedPool();
+      const subjectPool = questions.filter(q => q.subject === state.practiceSubject);
+      const priority = window.KuntaiPriorityEngine.interleaveByWeakness(
+        subjectPool.filter(q => q.priorityProfile === "kuntai-2026-07")
+      );
+      const regular = subjectPool.filter(q => q.priorityProfile !== "kuntai-2026-07");
+      return [...priority, ...regular];
     }
 
     function selectNextQuestion() {
@@ -1970,7 +1974,8 @@
         correct: state.dailyCorrect,
         mistakes: state.todayMistakes,
         bySubject: state.dailyBySubject,
-        totalDone: state.done
+        totalDone: state.done,
+        weaknessStats: state.weaknessStats
       };
     }
 
@@ -2000,7 +2005,7 @@
         weakCounts[key] = (weakCounts[key] || 0) + 1;
       });
       const weak = Object.entries(weakCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
-      const profile = Object.values(state.weaknessStats || {})
+      const profile = Object.values(report.weaknessStats || state.weaknessStats || {})
         .map(item => {
           const recentRate = item.recent?.length
             ? Math.round(item.recent.reduce((sum, value) => sum + value, 0) / item.recent.length * 100)
@@ -2116,7 +2121,8 @@
         correct: state.dailyCorrect,
         mistakes: state.todayMistakes.slice(0, 50),
         bySubject: state.dailyBySubject,
-        totalDone: state.done
+        totalDone: state.done,
+        weaknessStats: state.weaknessStats
       };
       reportUrl = `${location.origin}${location.pathname}#report=${btoa(unescape(encodeURIComponent(JSON.stringify(payload))))}`;
       $("#copyReportBtn").classList.remove("hidden");
