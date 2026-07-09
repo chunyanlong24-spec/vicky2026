@@ -1,0 +1,2294 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>金泰-暑假</title>
+  <style>
+    :root {
+      --ink: #1d2328;
+      --muted: #66727d;
+      --paper: #f8f6ee;
+      --panel: #ffffff;
+      --line: #d9dedb;
+      --green: #25705f;
+      --green-2: #dff0e8;
+      --blue: #265d83;
+      --blue-2: #e0eef7;
+      --red: #b44135;
+      --red-2: #f8e7e2;
+      --amber: #b47421;
+      --amber-2: #f5ead7;
+      --charcoal: #26313a;
+      --shadow: 0 18px 42px rgba(30, 38, 45, .12);
+      --radius: 8px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
+      background:
+        linear-gradient(90deg, rgba(38,93,131,.05) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(38,93,131,.05) 1px, transparent 1px),
+        var(--paper);
+      background-size: 28px 28px;
+    }
+
+    button, input, select, textarea { font: inherit; }
+    button {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--ink);
+      border-radius: 8px;
+      padding: 9px 12px;
+      cursor: pointer;
+      transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+    }
+    button:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(31, 44, 53, .1); }
+    button.primary { background: var(--charcoal); color: white; border-color: var(--charcoal); }
+    button.ghost { background: transparent; }
+    button.good { background: var(--green); color: white; border-color: var(--green); }
+    button.warn { background: var(--amber-2); border-color: #dec391; color: #79490f; }
+    h1, h2, h3, p { margin: 0; }
+
+    .app {
+      width: min(1380px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 18px 0 34px;
+    }
+
+    .topbar {
+      min-height: 72px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 16px;
+      align-items: center;
+      border-bottom: 2px solid var(--charcoal);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .mark {
+      width: 42px;
+      height: 42px;
+      border: 2px solid var(--charcoal);
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      background: var(--green-2);
+      border-radius: 8px;
+    }
+    .brand h1 { font-size: clamp(20px, 3vw, 34px); letter-spacing: 0; }
+    .brand p { color: var(--muted); margin-top: 4px; font-size: 14px; }
+    .top-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 240px minmax(0, 1fr);
+      gap: 14px;
+      margin-top: 16px;
+      align-items: start;
+    }
+    .panel {
+      background: rgba(255,255,255,.92);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .panel-head {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .panel-head h2 { font-size: 17px; }
+    .panel-body { padding: 14px 16px; }
+
+    .nav {
+      position: sticky;
+      top: 12px;
+      overflow: hidden;
+    }
+    .nav button {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      background: #fff;
+    }
+    .nav button.active { background: var(--charcoal); color: #fff; border-color: var(--charcoal); }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 24px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: var(--blue-2);
+      color: #244d6a;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .pill.green { background: var(--green-2); color: #1f6655; }
+    .pill.red { background: var(--red-2); color: #8b332b; }
+    .pill.amber { background: var(--amber-2); color: #80500f; }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .stat {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 8px;
+      padding: 12px;
+      min-height: 92px;
+    }
+    .stat b { display: block; font-size: 26px; margin-top: 8px; }
+    .stat span { color: var(--muted); font-size: 13px; }
+
+    .start-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .start-card {
+      min-height: 118px;
+      border: 2px solid var(--charcoal);
+      border-radius: 8px;
+      background: #fff;
+      padding: 12px;
+      text-align: left;
+    }
+    .start-card strong {
+      display: block;
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+    .start-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    .start-card.primary-entry {
+      background: var(--green);
+      color: #fff;
+      border-color: var(--green);
+    }
+    .start-card.primary-entry span { color: rgba(255,255,255,.85); }
+
+    .today-box {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .task-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .task-row {
+      display: grid;
+      grid-template-columns: 86px 1fr 86px;
+      gap: 8px;
+      align-items: center;
+      padding: 9px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      font-size: 13px;
+    }
+    .task-row b { color: var(--green); }
+
+    .practice-route {
+      margin-bottom: 14px;
+    }
+    .subject-row {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .subject-row button {
+      min-height: 44px;
+      padding: 8px;
+      font-weight: 800;
+    }
+    .subject-row button.active {
+      background: var(--charcoal);
+      color: #fff;
+      border-color: var(--charcoal);
+    }
+
+    .stage-strip {
+      display: grid;
+      grid-template-columns: 1fr 3fr 1.7fr;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .stage {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: #fff;
+      position: relative;
+      overflow: hidden;
+    }
+    .stage::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: var(--p);
+      height: 4px;
+      background: var(--green);
+    }
+    .stage strong { display: block; margin-bottom: 5px; }
+    .stage small { color: var(--muted); }
+
+    .lock-strip {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .lock-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: #fff;
+      min-height: 92px;
+    }
+    .lock-card strong {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 7px;
+    }
+    .lock-card p {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .question-card {
+      background: #fff;
+      border: 2px solid var(--charcoal);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .question-meta {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      background: #fbfbf7;
+    }
+    .stem {
+      padding: 18px;
+      font-size: 18px;
+      line-height: 1.8;
+    }
+    .translation {
+      margin: -8px 18px 16px;
+      padding: 10px 12px;
+      border-left: 4px solid var(--green);
+      background: var(--green-2);
+      color: #1f6655;
+      line-height: 1.6;
+      border-radius: 8px;
+    }
+    .options {
+      display: grid;
+      gap: 8px;
+      padding: 0 18px 18px;
+    }
+    .text-answer {
+      margin: 0 18px 18px;
+      width: calc(100% - 36px);
+      min-height: 52px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px 14px;
+      font: inherit;
+      resize: vertical;
+    }
+    .answer-reveal {
+      margin: 0 18px 18px;
+      padding: 10px 12px;
+      border-left: 4px solid var(--green);
+      background: var(--green-2);
+      color: #1f6655;
+      line-height: 1.6;
+    }
+    .option {
+      text-align: left;
+      border: 1px solid var(--line);
+      min-height: 48px;
+      background: #fff;
+    }
+    .option.selected { border-color: var(--blue); background: var(--blue-2); }
+    .option.correct { border-color: var(--green); background: var(--green-2); }
+    .option.wrong { border-color: var(--red); background: var(--red-2); }
+    .answer-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px 18px 18px;
+      flex-wrap: wrap;
+    }
+    .confidence {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      align-items: center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .confidence label {
+      display: inline-flex;
+      gap: 5px;
+      align-items: center;
+      color: var(--ink);
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 5px 8px;
+    }
+
+    .tabbar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .tabbar button.active { background: var(--charcoal); color: white; border-color: var(--charcoal); }
+    .bank-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .bank-item {
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+    .bank-item strong { display: block; margin-bottom: 8px; }
+    .bar {
+      height: 8px;
+      background: #edf0ee;
+      border-radius: 99px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    .bar i { display: block; height: 100%; background: var(--green); width: var(--w); }
+
+    .mistake-list {
+      display: grid;
+      gap: 10px;
+      max-height: 420px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+    .mistake {
+      border: 1px solid var(--line);
+      border-left: 5px solid var(--red);
+      border-radius: 8px;
+      background: #fff;
+      padding: 10px;
+    }
+    .mistake.unsteady { border-left-color: var(--amber); }
+    .mistake p { margin: 8px 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+    .mistake button { width: 100%; }
+
+    .player {
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 280px;
+      gap: 12px;
+    }
+    .board {
+      min-height: 360px;
+      background:
+        linear-gradient(90deg, rgba(37,112,95,.07) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(37,112,95,.07) 1px, transparent 1px),
+        #fffef9;
+      background-size: 22px 22px;
+      border: 2px solid var(--charcoal);
+      border-radius: 8px;
+      padding: 18px;
+      position: relative;
+      overflow: hidden;
+    }
+    .board::after {
+      content: "AI BOARD";
+      position: absolute;
+      right: 12px;
+      bottom: 8px;
+      color: rgba(38,49,58,.12);
+      font-weight: 900;
+      font-size: 42px;
+    }
+    .board h3 { font-size: 19px; margin-bottom: 12px; }
+    .board-step {
+      opacity: .25;
+      transform: translateX(-8px);
+      border-left: 4px solid transparent;
+      padding: 8px 10px;
+      margin: 8px 0;
+      line-height: 1.65;
+      transition: opacity .25s ease, transform .25s ease, background .25s ease;
+    }
+    .board-step.active {
+      opacity: 1;
+      transform: translateX(0);
+      background: rgba(223,240,232,.72);
+      border-left-color: var(--green);
+    }
+    .side-note {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 8px;
+      padding: 12px;
+    }
+    .side-note h3 { font-size: 16px; margin-bottom: 10px; }
+    .side-note dl { margin: 0; display: grid; gap: 8px; }
+    .side-note dt { font-size: 12px; color: var(--muted); }
+    .side-note dd { margin: 2px 0 0; font-weight: 700; }
+    .controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    .play-status {
+      display: inline-flex;
+      align-items: center;
+      min-height: 43px;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--muted);
+      background: #fff;
+      font-size: 13px;
+    }
+    .variant-box {
+      margin-top: 10px;
+      border: 2px solid var(--green);
+      border-radius: 8px;
+      padding: 12px;
+      background: #f7fffb;
+    }
+    .variant-box h3 {
+      font-size: 17px;
+      margin-bottom: 8px;
+    }
+    .variant-options {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .variant-options button.correct { background: var(--green-2); border-color: var(--green); }
+    .variant-options button.wrong { background: var(--red-2); border-color: var(--red); }
+    .textarea {
+      width: 100%;
+      min-height: 92px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      resize: vertical;
+      background: #fff;
+    }
+    .hidden { display: none !important; }
+
+    @media (max-width: 1120px) {
+      .grid { grid-template-columns: 1fr; }
+      .nav { position: static; }
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .player { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 680px) {
+      .topbar { grid-template-columns: 1fr; }
+      .top-actions { justify-content: flex-start; }
+      .stage-strip, .bank-grid, .lock-strip, .start-grid, .today-box, .subject-row { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: 1fr; }
+      .stem { font-size: 16px; }
+      .answer-row { align-items: stretch; }
+      .answer-row button { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="mark">55</div>
+        <div>
+          <h1>金泰-暑假</h1>
+          <p>七科暑假训练，基础题库质量不变；系统按金泰薄弱点优先派题、讲解错题并安排同类变式回收</p>
+        </div>
+      </div>
+      <div class="top-actions">
+        <button class="primary" data-view="practice">开始今日刷题</button>
+      </div>
+    </header>
+
+    <section class="grid">
+      <aside class="panel nav">
+        <div class="panel-head"><h2>学习驾驶舱</h2><span class="pill green">学生端</span></div>
+        <div class="panel-body">
+          <button class="active" data-view="practice">刷题训练 <span>Online</span></button>
+          <button data-view="mistakes">错题讲解 <span id="mistakeNavCount">0</span></button>
+          <button data-view="parent">家长看板 <span>进度</span></button>
+          <button data-view="plan">55天安排 <span id="navDay">Day 1</span></button>
+        </div>
+      </aside>
+
+      <section>
+        <div class="stats">
+          <div class="stat"><span>今日已做</span><b id="doneCount">0</b><span>道题</span></div>
+          <div class="stat"><span>正确率</span><b id="accuracy">0%</b><span>含不稳题统计</span></div>
+          <div class="stat"><span>错题/码不准</span><b id="mistakeCount">0</b><span>自动进入讲解</span></div>
+          <div class="stat"><span>今日得分</span><b id="todayScore">0</b><span>满分100</span></div>
+        </div>
+
+        <div class="view" id="practiceView">
+          <div class="start-grid">
+            <button class="start-card primary-entry" id="startDailyBtn">
+              <strong>开始今日自测</strong>
+              <span>七科按暑假计划组卷，每日60题，薄弱科目优先加权。</span>
+            </button>
+            <button class="start-card" id="startPracticeBtn">
+              <strong>进入专项练习</strong>
+              <span>按今日错因推同类题，不重复原题。</span>
+            </button>
+            <button class="start-card" data-view="mistakes">
+              <strong>错题回收</strong>
+              <span>只推同类变式，不重复原题。</span>
+            </button>
+            <button class="start-card" id="startPreviewBtn">
+              <strong>预习小课</strong>
+              <span>初三新课先讲后练，基础达标再提升。</span>
+            </button>
+          </div>
+
+          <div class="today-box">
+            <div class="panel">
+              <div class="panel-head"><h2>今日锁定任务</h2><span class="pill green" id="taskDay">Day 1</span></div>
+              <div class="panel-body">
+                <div class="task-list">
+                  <div class="task-row"><b>第1关</b><span>数学14题：几何旋转/平行线/四边形判定、一次函数与不等式</span><strong>未开始</strong></div>
+                  <div class="task-row"><b>第2关</b><span>英语10题：短文填空、完成表格、同义词短语与课外词汇</span><strong>未开始</strong></div>
+                  <div class="task-row"><b>第3关</b><span>语文10题：说明文、现代文问答、课外古诗文与语言应用</span><strong>未开始</strong></div>
+                  <div class="task-row"><b>第4关</b><span>物理10题：摩擦力、浮力压强、杠杆滑轮与函数图像</span><strong>未开始</strong></div>
+                  <div class="task-row"><b>第5关</b><span>化学8题：教材入门、实验与微观概念</span><strong>未开始</strong></div>
+                  <div class="task-row"><b>第6关</b><span>地理4题 + 生物4题：读图、材料与实验探究</span><strong>未开始</strong></div>
+                  <div class="task-row"><b>第7关</b><span>订正：错题看讲解，做对同类变式</span><strong>锁定</strong></div>
+                </div>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-head"><h2>完成规则</h2><span class="pill amber">不可跳过</span></div>
+              <div class="panel-body">
+                <div class="task-list">
+                  <div class="task-row"><b>1</b><span>做题后提交答案</span><strong>必做</strong></div>
+                  <div class="task-row"><b>2</b><span>错题/码不准题必须播放讲解</span><strong>必做</strong></div>
+                  <div class="task-row"><b>3</b><span>讲解后必须做对同类变式，才能进入下一题</span><strong>必做</strong></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel practice-route" id="practiceRoute">
+            <div class="panel-head">
+              <h2>专项练习</h2>
+              <span class="pill" id="practiceMode">自测后按薄弱点派题</span>
+            </div>
+            <div class="panel-body">
+              <div class="subject-row">
+                <button data-practice-subject="数学">数学</button>
+                <button data-practice-subject="英语">英语</button>
+                <button data-practice-subject="语文">语文</button>
+                <button data-practice-subject="物理">物理</button>
+                <button data-practice-subject="化学">化学</button>
+                <button data-practice-subject="地理">地理</button>
+                <button data-practice-subject="生物">生物</button>
+              </div>
+            </div>
+          </div>
+
+          <article class="question-card">
+            <div class="question-meta" id="questionMeta"></div>
+            <div class="stem" id="questionStem"></div>
+            <div class="translation hidden" id="questionTranslation"></div>
+            <div class="options" id="options"></div>
+            <textarea class="text-answer hidden" id="textAnswer" placeholder="在这里输入答案"></textarea>
+            <div class="answer-reveal hidden" id="answerReveal"></div>
+            <div class="answer-row">
+              <div class="confidence">
+                <span>做题感觉：</span>
+                <label><input type="radio" name="confidence" value="steady" checked> 稳</label>
+                <label><input type="radio" name="confidence" value="guess"> 蒙对/码不准</label>
+                <label><input type="radio" name="confidence" value="slow"> 超时才做出</label>
+              </div>
+              <div>
+                <button class="ghost hidden" id="readQuestionBtn">朗读英文题目</button>
+                <span class="play-status" id="englishAudioStatus" aria-live="polite"></span>
+                <button class="warn" id="unsteadyBtn">标记不稳</button>
+                <button class="good" id="submitBtn">提交答案</button>
+                <button class="primary hidden" id="nextBtn">下一题</button>
+              </div>
+            </div>
+          </article>
+
+          <div class="player hidden" id="inlinePlayer"></div>
+        </div>
+
+        <div class="view hidden" id="mistakesView">
+          <div class="panel">
+            <div class="panel-head">
+              <h2>错题与码不准题讲解</h2>
+              <span class="pill red">自动沉淀</span>
+            </div>
+            <div class="panel-body">
+              <div class="mistake-list" id="mistakeList"></div>
+              <div class="player hidden" id="mistakePlayer"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="view hidden" id="parentView">
+          <div class="panel">
+            <div class="panel-head"><h2>家长看板</h2><span class="pill green" id="parentDate"></span></div>
+            <div class="panel-body">
+              <div class="stats">
+                <div class="stat"><span>今日完成</span><b id="parentCompleted">0/7</b><span>七科</span></div>
+                <div class="stat"><span>今日得分</span><b id="parentScore">0</b><span>满分100</span></div>
+                <div class="stat"><span>今日错题</span><b id="parentMistakes">0</b><span>含码不准</span></div>
+                <div class="stat"><span>累计做题</span><b id="parentTotal">0</b><span>道题</span></div>
+              </div>
+              <div class="bank-grid" id="parentSubjects"></div>
+              <div class="bank-item" style="margin-top:10px">
+                <strong>薄弱考点</strong>
+                <p id="parentWeakPoints">暂无数据</p>
+              </div>
+              <div class="controls">
+                <button class="primary" id="shareReportBtn">生成家长报告链接</button>
+                <button id="copyReportBtn" class="hidden">复制链接</button>
+                <span class="play-status" id="shareReportStatus">生成后可发给异地家长查看当天快照。</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="view hidden" id="planView">
+          <div class="panel">
+            <div class="panel-head"><h2>55天刷题节奏</h2><span class="pill green">家长锁定 + 系统调整</span></div>
+            <div class="panel-body">
+              <div class="bank-grid">
+                <div class="bank-item"><strong>每日固定节奏</strong><p>孩子端显示关卡，不显示时长；家长端控制总量和休息节奏。</p></div>
+                <div class="bank-item"><strong>第1-7天：摸底诊断</strong><p>每天2-3科小卷，错题必须讲解；系统给出薄弱知识点排名，学生不能自行减少科目。</p></div>
+                <div class="bank-item"><strong>第8-35天：专题补弱 + 预习</strong><p>七科基础保分不变，数学/英语/语文/物理按金泰薄弱点加权；错题进入“次日、3天、7天、15天”变式回收。</p></div>
+                <div class="bank-item"><strong>第36-48天：综合训练</strong><p>压力最高但可控，语数英限时片段，物化实验与模型题，系统控制拔高题比例。</p></div>
+                <div class="bank-item"><strong>第49-55天：降压收束</strong><p>少上新题，多做错题变式、限时小卷、古诗文和单词回收，避免暑假末疲劳崩盘。</p></div>
+                <div class="bank-item"><strong>完成判定</strong><p>做题、判分、讲解、更正、同类题、复盘全部完成，才算当天任务完成。</p></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+    </section>
+  </main>
+
+  <script src="question-bank/math.js"></script>
+  <script src="question-bank/english.js"></script>
+  <script src="question-bank/chinese.js"></script>
+  <script src="question-bank/physics.js"></script>
+  <script src="question-bank/chemistry.js"></script>
+  <script src="question-bank/geography.js"></script>
+  <script src="question-bank/biology.js"></script>
+  <script src="question-bank/jintai-priority.js"></script>
+  <script src="question-bank/jintai-priority-engine.js"></script>
+  <script>
+    const questions = [
+      {
+        id: "m-001", subject: "数学", point: "一次函数应用", type: "选择题", difficulty: "中档",
+        stem: "某网约车起步价为8元，超过3千米后每千米加收2元。若车费y元与行驶里程x千米满足一次函数关系，行驶8千米时车费为多少？",
+        options: ["A. 16元", "B. 18元", "C. 20元", "D. 24元"], answer: 1,
+        variant: {
+          stem: "同类变式：某停车场前2小时收费6元，超过2小时后每小时加收3元。停车7小时应付多少元？",
+          options: ["A. 15元", "B. 18元", "C. 21元", "D. 24元"],
+          answer: 2
+        },
+        explanation: {
+          exam: "分段计费中的一次函数建模",
+          error: "常见错误是把8千米全部按2元计算，漏掉起步价已经包含前3千米。",
+          steps: [
+            "先读条件：起步价8元，包含前3千米。",
+            "超过3千米的部分是 8 - 3 = 5 千米。",
+            "加收费用为 5 × 2 = 10 元。",
+            "总车费为 8 + 10 = 18 元，所以选B。",
+            "方法总结：遇到起步价题，先扣掉起步范围，再计算超出部分。"
+          ],
+          similar: "同类题：起步价10元含2千米，超过后每千米1.8元，7千米应付多少？"
+        }
+      },
+      {
+        id: "m-002", subject: "数学", point: "几何角度", type: "选择题", difficulty: "基础",
+        stem: "如图形条件可转化为：两条直线相交形成一对对顶角。若其中一个角为65°，它的对顶角是多少？",
+        options: ["A. 25°", "B. 65°", "C. 90°", "D. 115°"], answer: 1,
+        variant: {
+          stem: "同类变式：两条直线相交，若一个角为118°，它的对顶角是多少？",
+          options: ["A. 62°", "B. 90°", "C. 118°", "D. 180°"],
+          answer: 2
+        },
+        explanation: {
+          exam: "对顶角性质",
+          error: "容易把对顶角和邻补角混淆。对顶角相等，邻补角和为180°。",
+          steps: [
+            "先判断两个角的位置关系。",
+            "对顶角是两条直线相交后相对的两个角。",
+            "对顶角的性质是相等。",
+            "已知一个角为65°，它的对顶角也为65°，所以选B。",
+            "方法总结：相对看对顶，相邻看互补。"
+          ],
+          similar: "同类题：两直线相交，一个角为118°，求它的对顶角。"
+        }
+      },
+      {
+        id: "m-003", subject: "数学", point: "方程应用", type: "选择题", difficulty: "中档",
+        stem: "某同学买笔记本和中性笔共12件，笔记本每本4元，中性笔每支2元，共花34元。设买笔记本x本，则可列方程为？",
+        options: ["A. 4x + 2x = 34", "B. 4x + 2(12 - x) = 34", "C. 2x + 4(12 - x) = 34", "D. x + 12 = 34"], answer: 1,
+        variant: {
+          stem: "同类变式：买练习本和铅笔共10件，练习本3元，铅笔1元，共花22元。设买练习本x本，应列哪个方程？",
+          options: ["A. 3x + (10 - x) = 22", "B. x + 3(10 - x) = 22", "C. 3x + x = 22", "D. 10x + 3 = 22"],
+          answer: 0
+        },
+        explanation: {
+          exam: "一元一次方程应用建模",
+          error: "常见错误是只写一种物品的钱，或者忘记另一种物品数量是总数减x。",
+          steps: [
+            "设买笔记本x本。",
+            "两类物品共12件，所以中性笔数量是12 - x。",
+            "笔记本费用是4x，中性笔费用是2(12 - x)。",
+            "总费用为34元，方程是4x + 2(12 - x) = 34。",
+            "方法总结：总数问题里，另一类数量常写成总数减x。"
+          ],
+          similar: "同类题：总件数固定、单价不同，设一种数量后表示另一种数量。"
+        }
+      },
+      {
+        id: "p-001", subject: "物理", point: "压强", type: "选择题", difficulty: "基础",
+        stem: "同一块砖分别平放、侧放、竖放在水平地面上，对地面的压力和压强变化正确的是？",
+        options: ["A. 压力不变，压强不变", "B. 压力变大，压强变大", "C. 压力不变，压强随受力面积减小而变大", "D. 压力变小，压强变大"], answer: 2,
+        variant: {
+          stem: "同类变式：书包背带做得较宽，主要是为了在压力不变时怎样改变压强？",
+          options: ["A. 增大受力面积，减小压强", "B. 减小受力面积，增大压强", "C. 增大压力，增大压强", "D. 减小压力，减小压强"],
+          answer: 0
+        },
+        explanation: {
+          exam: "压力、受力面积与压强关系",
+          error: "容易把压力和压强混淆。砖的重力不变，压力不变；变化的是接触面积。",
+          steps: [
+            "砖放在水平地面上，对地面的压力等于砖的重力。",
+            "同一块砖重力不变，所以三种放法压力不变。",
+            "压强公式是 p = F / S。",
+            "竖放时接触面积最小，压强最大。",
+            "方法总结：先判断F是否变，再看S如何变。"
+          ],
+          similar: "同类题：书包带做宽是为了增大受力面积还是增大压力？"
+        }
+      },
+      {
+        id: "e-001", subject: "英语", point: "完形语境", type: "选择题", difficulty: "中档",
+        stem: "It was raining hard, but Lily still went to school on time. She was never late because she was very ____.",
+        options: ["A. careless", "B. lazy", "C. strict", "D. funny"], answer: 2,
+        variant: {
+          stem: "同类变式：Tom checks his homework twice every day. He is very ____ with his study.",
+          options: ["A. strict", "B. lazy", "C. funny", "D. careless"],
+          answer: 0
+        },
+        explanation: {
+          exam: "形容词词义与上下文逻辑",
+          error: "只看单词熟不熟会选错，要看前后句的因果关系。",
+          steps: [
+            "前文说下大雨，但Lily仍按时到校。",
+            "后文说她从不迟到，说明她对自己要求高。",
+            "strict 表示严格的、自律的，符合语境。",
+            "careless粗心、lazy懒惰、funny有趣，都不符合。",
+            "方法总结：完形先读情绪和逻辑，再选单词。"
+          ],
+          similar: "同类题：He checks his homework twice, so he is very ____."
+        }
+      },
+      {
+        id: "c-001", subject: "化学", point: "化学式入门", type: "选择题", difficulty: "基础",
+        stem: "下列物质的化学式书写正确的是？",
+        options: ["A. 氧气 O", "B. 水 H2O", "C. 二氧化碳 CO", "D. 氯化钠 NaCl2"], answer: 1,
+        variant: {
+          stem: "同类变式：下列物质的化学式书写正确的是？",
+          options: ["A. 氢气 H", "B. 氧气 O2", "C. 二氧化碳 CO", "D. 水 HO2"],
+          answer: 1
+        },
+        explanation: {
+          exam: "初三化学式基础",
+          error: "刚学化学时容易把元素符号和物质化学式混在一起。",
+          steps: [
+            "氧气是双原子分子，化学式为 O2，不是O。",
+            "水由两个氢原子和一个氧原子构成，写作 H2O。",
+            "二氧化碳是 CO2，不是CO。",
+            "氯化钠中钠和氯个数比为1:1，写作NaCl。",
+            "方法总结：先记常见物质化学式，再理解原子个数。"
+          ],
+          similar: "同类题：氧气、氢气、二氧化硫的化学式分别是什么？"
+        }
+      },
+      {
+        id: "g-001", subject: "地理", point: "等高线", type: "选择题", difficulty: "中档",
+        stem: "在等高线地形图中，等高线越密集，通常表示该处地势怎样？",
+        options: ["A. 坡度越缓", "B. 坡度越陡", "C. 海拔越低", "D. 气温越高"], answer: 1,
+        variant: {
+          stem: "同类变式：在等高线地形图中，等高线越稀疏，通常表示该处地势怎样？",
+          options: ["A. 坡度越缓", "B. 坡度越陡", "C. 海拔越高", "D. 降水越多"],
+          answer: 0
+        },
+        explanation: {
+          exam: "读图能力与等高线判读",
+          error: "等高线密集不是海拔高低，而是高度变化快。",
+          steps: [
+            "等高线表示海拔相同的点连成的线。",
+            "相邻等高线高度差相同。",
+            "线越密，说明短距离内高度变化越大。",
+            "高度变化大就是坡度陡。",
+            "方法总结：密陡疏缓。"
+          ],
+          similar: "同类题：等高线向低处凸出通常表示山脊还是山谷？"
+        }
+      },
+      {
+        id: "b-001", subject: "生物", point: "实验探究", type: "选择题", difficulty: "基础",
+        stem: "探究光照对种子萌发的影响时，除光照不同外，其他条件应保持相同，这体现了什么原则？",
+        options: ["A. 对照原则", "B. 单一变量原则", "C. 重复原则", "D. 随机原则"], answer: 1,
+        variant: {
+          stem: "同类变式：探究温度对种子萌发的影响时，只改变温度，其他条件保持一致，这体现了什么原则？",
+          options: ["A. 对照原则", "B. 单一变量原则", "C. 重复原则", "D. 随机原则"],
+          answer: 1
+        },
+        explanation: {
+          exam: "生物实验设计",
+          error: "常把对照组和单一变量混淆；本题强调只有光照一个因素不同。",
+          steps: [
+            "实验要研究光照对萌发的影响。",
+            "因此光照是变量。",
+            "水分、温度、空气、种子数量等都要相同。",
+            "只有一个变量不同，叫单一变量原则。",
+            "方法总结：问'只改变一个条件'就找单一变量。"
+          ],
+          similar: "同类题：探究温度影响时，水分和空气是否能同时改变？"
+        }
+      }
+    ];
+
+    function makeExplanation(exam, error, method, answerText, similar) {
+      return {
+        exam,
+        error,
+        steps: [
+          `先判断考点：${exam}。`,
+          method,
+          answerText,
+          `易错提醒：${error}`,
+          "方法总结：先找条件，再选方法，最后检查答案是否符合题意。"
+        ],
+        similar
+      };
+    }
+
+    function addGeneratedBank() {
+      const generated = [];
+      const letters = ["A", "B", "C", "D"];
+      const push = (q) => generated.push(q);
+
+      for (let i = 0; i < 900; i++) {
+        const base = 6 + (i % 7);
+        const included = 2 + (i % 4);
+        const extra = 1.5 + (i % 6) * 0.5;
+        const km = included + 3 + (i % 9);
+        const ans = base + (km - included) * extra;
+        const opts = [ans - extra, ans, ans + extra, ans + 2 * extra].map((n, idx) => `${letters[idx]}. ${Number(n.toFixed(1))}元`);
+        push({
+          id: `m-func-${i}`, subject: "数学", point: "一次函数应用", type: "选择题", difficulty: i % 3 === 0 ? "提升" : "保分",
+          stem: `分段计费：起步价${base}元，包含前${included}千米，超过后每千米${extra}元。行驶${km}千米应付多少元？`,
+          options: opts, answer: 1,
+          variant: {
+            stem: `同类变式：起步价${base + 2}元，包含前${included + 1}千米，超过后每千米${extra}元。行驶${km + 1}千米应付多少元？`,
+            options: [base + 2 + (km - included) * extra - extra, base + 2 + (km - included) * extra, base + 2 + (km - included) * extra + extra, base + 2 + (km - included) * extra + 2 * extra].map((n, idx) => `${letters[idx]}. ${Number(n.toFixed(1))}元`),
+            answer: 1
+          },
+          explanation: makeExplanation("一次函数与分段计费", "不要把全程都按超出单价计算，要先扣除起步范围。", `超出部分是 ${km} - ${included} = ${km - included} 千米。`, `总费用为 ${base} + ${km - included} × ${extra} = ${Number(ans.toFixed(1))} 元。`, "同类题：换一个起步范围和单价重新建模。")
+        });
+      }
+
+      for (let i = 0; i < 750; i++) {
+        const total = 10 + (i % 9);
+        const priceA = 3 + (i % 5);
+        const priceB = 1 + (i % 4);
+        const countA = 2 + (i % (total - 3));
+        const money = priceA * countA + priceB * (total - countA);
+        push({
+          id: `m-eq-${i}`, subject: "数学", point: "方程应用", type: "选择题", difficulty: i % 4 === 0 ? "提升" : "保分",
+          stem: `买甲、乙两种文具共${total}件，甲每件${priceA}元，乙每件${priceB}元，共花${money}元。设甲有x件，应列哪个方程？`,
+          options: [`A. ${priceA}x + ${priceB}(${total} - x) = ${money}`, `B. ${priceB}x + ${priceA}(${total} - x) = ${money}`, `C. ${priceA}x + ${priceB}x = ${money}`, `D. x + ${total} = ${money}`],
+          answer: 0,
+          variant: {
+            stem: `同类变式：两类物品共${total + 2}件，甲${priceA + 1}元，乙${priceB}元，总价${money + priceA + priceB}元。设甲x件，应先怎样表示乙的数量？`,
+            options: ["A. x", `B. ${total + 2} - x`, `C. ${total + 2} + x`, "D. 2x"],
+            answer: 1
+          },
+          explanation: makeExplanation("一元一次方程应用", "另一类数量常常是总数减x，别漏。", `甲有x件，乙有 ${total} - x 件。`, `费用关系为 ${priceA}x + ${priceB}(${total} - x) = ${money}。`, "同类题：总件数固定，设一类数量，表示另一类数量。")
+        });
+      }
+
+      for (let i = 0; i < 750; i++) {
+        const angle = 30 + (i % 60);
+        push({
+          id: `m-geo-${i}`, subject: "数学", point: "几何角度", type: "选择题", difficulty: i % 5 === 0 ? "提升" : "保分",
+          stem: `两条直线相交，已知其中一个角是${angle}°，它的对顶角是多少？`,
+          options: [`A. ${180 - angle}°`, `B. ${angle}°`, "C. 90°", `D. ${angle + 10}°`],
+          answer: 1,
+          variant: {
+            stem: `同类变式：两条直线相交，若一个角为${angle + 5}°，它的邻补角是多少？`,
+            options: [`A. ${angle + 5}°`, `B. ${175 - angle}°`, `C. ${180 - angle}°`, "D. 90°"],
+            answer: 1
+          },
+          explanation: makeExplanation("对顶角和邻补角", "对顶角相等，邻补角和为180°，不要混淆。", "题目问对顶角，直接用对顶角相等。", `所以对顶角是 ${angle}°。`, "同类题：换成邻补角时，用180°减去已知角。")
+        });
+      }
+
+      const words = [
+        ["strict", "严格的", "checks his homework twice", "每天把作业检查两遍", [["strict", "严格的"], ["lazy", "懒惰的"], ["careless", "粗心的"], ["funny", "有趣的"]]],
+        ["careful", "仔细的", "never makes mistakes in copying numbers", "抄数字时从不出错", [["careful", "仔细的"], ["lazy", "懒惰的"], ["noisy", "吵闹的"], ["angry", "生气的"]]],
+        ["brave", "勇敢的", "helped the child in danger", "帮助了处在危险中的孩子", [["brave", "勇敢的"], ["weak", "虚弱的"], ["late", "迟到的"], ["quiet", "安静的"]]],
+        ["honest", "诚实的", "returned the lost wallet", "归还了丢失的钱包", [["honest", "诚实的"], ["hungry", "饥饿的"], ["busy", "忙碌的"], ["afraid", "害怕的"]]],
+        ["patient", "有耐心的", "explained the problem again and again", "一遍又一遍解释这道题", [["patient", "有耐心的"], ["quick", "快速的"], ["fresh", "新鲜的"], ["alone", "独自的"]]]
+      ];
+      for (let i = 0; i < 2100; i++) {
+        const [word, meaning, clue, clueCn, optsBase] = words[i % words.length];
+        push({
+          id: `e-vocab-${i}`, subject: "英语", point: "核心词汇", type: "选择题", difficulty: i % 4 === 0 ? "提升" : "保分",
+          stem: `The student ${clue}. He is very ____.`,
+          translation: `这个学生${clueCn}。他非常____。`,
+          options: optsBase.map(([w, cn], idx) => `${letters[idx]}. ${w}（${cn}）`),
+          answer: 0,
+          variant: {
+            stem: `同类变式：Which word means “${meaning}”?`,
+            options: optsBase.map(([w, cn], idx) => `${letters[idx]}. ${w}（${cn}）`),
+            answer: 0
+          },
+          explanation: makeExplanation("英语语境词汇", "不能只看中文，要看前后句线索。", `线索是 “${clue}”，对应单词 ${word}。`, `正确答案是 ${word}。`, "同类题：换一个语境判断同一类品质词。")
+        });
+      }
+
+      const poemItems = [
+        { line: "会当凌绝顶，一览众山小", ask: "这两句主要表现诗人怎样的精神？", options: ["A. 畏惧困难", "B. 登高望远、积极进取", "C. 思念家乡", "D. 伤春惜别"], answer: 1, point: "古诗情感" },
+        { line: "大漠孤烟直，长河落日圆", ask: "这两句最突出的画面特点是？", options: ["A. 雄浑开阔", "B. 细腻婉约", "C. 阴冷压抑", "D. 热闹繁华"], answer: 0, point: "画面赏析" },
+        { line: "海内存知己，天涯若比邻", ask: "这两句表达的情感是？", options: ["A. 真挚友情不受距离阻隔", "B. 对战争的恐惧", "C. 对田园的喜爱", "D. 对春天的赞美"], answer: 0, point: "诗句理解" },
+        { line: "长风破浪会有时，直挂云帆济沧海", ask: "这两句最适合概括为哪种人生态度？", options: ["A. 消极退缩", "B. 乐观自信、追求理想", "C. 闲适淡泊", "D. 讽刺批判"], answer: 1, point: "主旨情感" },
+        { line: "春蚕到死丝方尽，蜡炬成灰泪始干", ask: "这两句常用来表现什么精神？", options: ["A. 无私奉献", "B. 游山玩水", "C. 边塞豪情", "D. 思乡怀人"], answer: 0, point: "象征手法" }
+      ];
+      const easyWords = [
+        { stem: "“会当凌绝顶”中容易写错的字是？", options: ["A. 凌", "B. 会", "C. 当", "D. 顶"], answer: 0, point: "易错字" },
+        { stem: "“直挂云帆济沧海”中“济”的意思最接近哪一项？", options: ["A. 渡过", "B. 经济", "C. 增加", "D. 停止"], answer: 0, point: "字词理解" },
+        { stem: "“大漠孤烟直”中“直”字的表达效果是？", options: ["A. 写出烟柱挺拔，画面开阔", "B. 表示道路笔直", "C. 说明天气寒冷", "D. 表示语气直接"], answer: 0, point: "炼字赏析" },
+        { stem: "“天涯若比邻”中“若”的意思是？", options: ["A. 好像", "B. 如果", "C. 你", "D. 这样"], answer: 0, point: "文言实词" }
+      ];
+      for (let i = 0; i < 1700; i++) {
+        const mode = i % 3;
+        const poem = poemItems[i % poemItems.length];
+        const wordQ = easyWords[i % easyWords.length];
+        const stem = mode === 0 ? `阅读诗句“${poem.line}”，${poem.ask}` : mode === 1 ? wordQ.stem : `理解性默写：表达“${poem.options[poem.answer].replace(/^.\. /, "")}”时，最适合填写哪一句？`;
+        const options = mode === 0 ? poem.options : mode === 1 ? wordQ.options : [`A. ${poem.line}`, "B. 山重水复疑无路", "C. 晴川历历汉阳树", "D. 谁家新燕啄春泥"];
+        const answer = mode === 0 ? poem.answer : mode === 1 ? wordQ.answer : 0;
+        const point = mode === 0 ? poem.point : mode === 1 ? wordQ.point : "理解性默写";
+        push({
+          id: `c-poem-${i}`, subject: "语文", point, type: "选择题", difficulty: i % 5 === 0 ? "提升" : "保分",
+          stem,
+          options,
+          answer,
+          variant: {
+            stem: mode === 2 ? `同类变式：这句“${poem.line}”主要表达什么？` : `同类变式：再看“${poem.line}”，判断它的情感或表达效果。`,
+            options: poem.options,
+            answer: poem.answer
+          },
+          explanation: makeExplanation("古诗文理解与默写", "不要只背句子，要能判断情感、手法、易错字和理解性提示。", "先抓诗句关键词，再联系情感和画面。", "根据题干提示选择最贴合的一项。", "同类题：换考法，不只换诗句。")
+        });
+      }
+
+      for (let i = 0; i < 1500; i++) {
+        const force = 20 + (i % 40);
+        const area = 2 + (i % 8);
+        const p = force / area;
+        push({
+          id: `p-pressure-${i}`, subject: "物理", point: "压强", type: "选择题", difficulty: i % 4 === 0 ? "提升" : "保分",
+          stem: `压力为${force}N，受力面积为${area}m²，压强是多少Pa？`,
+          options: [`A. ${Number((p / 2).toFixed(1))}`, `B. ${Number(p.toFixed(1))}`, `C. ${Number((p + area).toFixed(1))}`, `D. ${force * area}`],
+          answer: 1,
+          variant: {
+            stem: `同类变式：压力不变，受力面积变大，压强会怎样？`,
+            options: ["A. 变小", "B. 变大", "C. 不变", "D. 无法判断"],
+            answer: 0
+          },
+          explanation: makeExplanation("压强公式 p=F/S", "压力和压强不是一回事，要看受力面积。", `代入公式 p = F / S = ${force} / ${area}。`, `压强为 ${Number(p.toFixed(1))} Pa。`, "同类题：改变压力或面积，判断压强变化。")
+        });
+      }
+
+      const formulas = [["氧气", "O2"], ["水", "H2O"], ["二氧化碳", "CO2"], ["氢气", "H2"], ["氯化钠", "NaCl"]];
+      for (let i = 0; i < 1200; i++) {
+        const [name, formula] = formulas[i % formulas.length];
+        const wrongs = ["O", "CO", "NaCl2", "HO2"].filter(x => x !== formula).slice(0, 3);
+        const options = [formula, ...wrongs].slice(0, 4);
+        push({
+          id: `chem-formula-${i}`, subject: "化学", point: "化学式入门", type: "选择题", difficulty: i % 5 === 0 ? "提升" : "保分",
+          stem: `${name}的化学式正确的是？`,
+          options: options.map((x, idx) => `${letters[idx]}. ${x}`),
+          answer: 0,
+          variant: {
+            stem: `同类变式：判断${name}的化学式时，第一步应该关注什么？`,
+            options: ["A. 元素组成和原子个数", "B. 字写得好不好看", "C. 物质颜色", "D. 题目长短"],
+            answer: 0
+          },
+          explanation: makeExplanation("常见物质化学式", "刚入门容易把元素符号和物质化学式混淆。", `直接记忆并理解常见物质：${name} 写作 ${formula}。`, `正确答案是 ${formula}。`, "同类题：继续辨析氧气、水、二氧化碳、氢气等常见化学式。")
+        });
+      }
+
+      for (let i = 0; i < 650; i++) {
+        push({
+          id: `geo-map-${i}`, subject: "地理", point: "地图判读", type: "选择题", difficulty: i % 4 === 0 ? "提升" : "保分",
+          stem: `等高线地形图中，等高线越${i % 2 ? "密集" : "稀疏"}，坡度通常怎样？`,
+          options: i % 2 ? ["A. 越陡", "B. 越缓", "C. 越低", "D. 越热"] : ["A. 越缓", "B. 越陡", "C. 越高", "D. 越冷"],
+          answer: 0,
+          variant: {
+            stem: "同类变式：判断坡度时，主要看等高线的什么特征？",
+            options: ["A. 疏密", "B. 颜色", "C. 图名长短", "D. 字体大小"],
+            answer: 0
+          },
+          explanation: makeExplanation("等高线地形图", "等高线疏密表示坡度，不直接表示气温或降水。", "密陡疏缓，这是等高线判读的基本口诀。", "根据疏密即可判断坡度。", "同类题：换成山脊、山谷、陡崖继续读图。")
+        });
+      }
+
+      for (let i = 0; i < 650; i++) {
+        push({
+          id: `bio-exp-${i}`, subject: "生物", point: "实验探究", type: "选择题", difficulty: i % 4 === 0 ? "提升" : "保分",
+          stem: `探究${i % 2 ? "温度" : "光照"}对种子萌发的影响时，只改变这一项，其他条件保持相同，体现什么原则？`,
+          options: ["A. 单一变量原则", "B. 随机原则", "C. 分类原则", "D. 估算原则"],
+          answer: 0,
+          variant: {
+            stem: "同类变式：实验中为什么其他条件要保持相同？",
+            options: ["A. 保证只研究一个变量", "B. 为了让题目更长", "C. 为了减少种子", "D. 为了改变结论"],
+            answer: 0
+          },
+          explanation: makeExplanation("生物实验单一变量", "容易把对照原则和单一变量原则混在一起。", "题目强调只改变一个因素，其余条件相同。", "这体现单一变量原则。", "同类题：换成水分、空气、温度等变量继续判断。")
+        });
+      }
+
+      questions.push(...generated);
+    }
+
+    addGeneratedBank();
+
+    function addQualityUpgradeBank() {
+      const letters = ["A", "B", "C", "D"];
+      const add = (q) => questions.push(q);
+
+      for (let i = 0; i < 420; i++) {
+        const a = [1, -1, 2, -2][i % 4];
+        const x = (i % 7) - 3;
+        const y = a * x * x;
+        add({
+          id: `m-quad-preview-${i}`, subject: "数学", point: "二次函数预习", type: "选择题", difficulty: i % 3 === 0 ? "提升" : "预习保分",
+          stem: `预习题：函数 y = ${a}x²，当 x = ${x} 时，y 的值是多少？`,
+          options: [`A. ${y - 2}`, `B. ${y}`, `C. ${-y}`, `D. ${y + 2}`],
+          answer: 1,
+          variant: {
+            stem: `同类变式：函数 y = ${a}x²，当 x = ${x + 1} 时，y 的值是多少？`,
+            options: [`A. ${a * (x + 1) * (x + 1)}`, `B. ${a * (x + 1)}`, `C. ${(x + 1) * (x + 1)}`, `D. ${-a * (x + 1) * (x + 1)}`],
+            answer: 0
+          },
+          explanation: makeExplanation("二次函数代入求值", "新课预习先会代入，不急着做压轴。", `把 x = ${x} 代入 y = ${a}x²。`, `y = ${a} × ${x}² = ${y}。`, "同类题：换一个x值继续代入。")
+        });
+      }
+
+      const passages = [
+        ["Lucy joined the school reading club. At first, she read only easy stories. Three months later, she could finish a short English novel by herself.", "What helped Lucy improve?", "reading step by step"],
+        ["The Chengdu museum was crowded on Sunday. Jack arrived early, so he had enough time to see the old maps and write notes for his report.", "Why did Jack arrive early?", "to have enough time"],
+        ["Mina used to be afraid of speaking English. Her teacher asked her to practice one minute every day. Now she can introduce herself clearly.", "What changed Mina?", "daily practice"],
+        ["Tom lost the basketball game, but he wrote down his mistakes after the match. The next week, he played much better.", "What did Tom do after losing?", "wrote down mistakes"]
+      ];
+      for (let i = 0; i < 520; i++) {
+        const [text, ask, key] = passages[i % passages.length];
+        add({
+          id: `e-reading-${i}`, subject: "英语", point: "阅读理解", type: "选择题", difficulty: i % 3 === 0 ? "提升" : "保分",
+          stem: `${text}\nQuestion: ${ask}`,
+          options: [`A. ${key}`, "B. by buying gifts", "C. by sleeping late", "D. by missing class"],
+          answer: 0,
+          variant: {
+            stem: `同类变式：Read the passage again. Which skill is mainly tested?`,
+            options: ["A. finding key information", "B. spelling names", "C. counting letters", "D. drawing pictures"],
+            answer: 0
+          },
+          explanation: makeExplanation("英语阅读细节理解", "阅读题不要凭感觉，回到原文找关键词。", `问题关键词对应原文信息：${key}。`, "答案来自原文细节，而不是主观猜测。", "同类题：换一篇短文继续找关键词。")
+        });
+      }
+
+      const classical = [
+        ["学而时习之，不亦说乎", "学习后及时复习", "说", "通“悦”，愉快"],
+        ["温故而知新，可以为师矣", "复习旧知识得到新理解", "故", "旧知识"],
+        ["三人行，必有我师焉", "善于向别人学习", "师", "老师、可学习的人"],
+        ["择其善者而从之", "选择优点学习", "善", "优点、好的方面"]
+      ];
+      for (let i = 0; i < 520; i++) {
+        const [line, meaning, word, explain] = classical[i % classical.length];
+        add({
+          id: `ch-classic-${i}`, subject: "语文", point: "文言文理解", type: "选择题", difficulty: i % 4 === 0 ? "提升" : "保分",
+          stem: `文言复习：“${line}”这句话主要表达的意思是？`,
+          options: [`A. ${meaning}`, "B. 写景抒情", "C. 说明天气变化", "D. 描写战争场面"],
+          answer: 0,
+          variant: {
+            stem: `同类变式：“${line}”中“${word}”的意思更接近哪一项？`,
+            options: [`A. ${explain}`, "B. 山川", "C. 数字", "D. 颜色"],
+            answer: 0
+          },
+          explanation: makeExplanation("文言句意与实词", "文言文不能只背句子，还要知道关键词意思。", `先抓关键词“${word}”，再理解整句。`, `这句话主要表达：${meaning}。`, "同类题：换一句课内文言，继续抓实词和句意。")
+        });
+      }
+
+      for (let i = 0; i < 420; i++) {
+        const u = 3 + (i % 9);
+        const r = 1 + (i % 6);
+        const current = Number((u / r).toFixed(2));
+        add({
+          id: `p-electric-${i}`, subject: "物理", point: "电路与欧姆定律预习", type: "选择题", difficulty: i % 3 === 0 ? "提升" : "预习保分",
+          stem: `预习题：某电阻两端电压为${u}V，电阻为${r}Ω，电流约为多少A？`,
+          options: [`A. ${current}`, `B. ${u * r}`, `C. ${u + r}`, `D. ${Math.max(u - r, 0)}`],
+          answer: 0,
+          variant: {
+            stem: "同类变式：欧姆定律 I = U/R 中，电压不变，电阻变大，电流会怎样？",
+            options: ["A. 变小", "B. 变大", "C. 不变", "D. 一定为0"],
+            answer: 0
+          },
+          explanation: makeExplanation("欧姆定律入门", "公式题要先看单位，再代入。", `I = U / R = ${u} / ${r}。`, `电流约为 ${current} A。`, "同类题：换电压和电阻继续代入。")
+        });
+      }
+
+      const chemEq = [
+        ["氢气在氧气中燃烧生成水", "2H2 + O2 = 2H2O"],
+        ["碳在氧气中充分燃烧生成二氧化碳", "C + O2 = CO2"],
+        ["镁在氧气中燃烧生成氧化镁", "2Mg + O2 = 2MgO"]
+      ];
+      for (let i = 0; i < 360; i++) {
+        const [desc, eq] = chemEq[i % chemEq.length];
+        add({
+          id: `chem-equation-${i}`, subject: "化学", point: "化学方程式预习", type: "选择题", difficulty: i % 3 === 0 ? "提升" : "预习保分",
+          stem: `预习题：${desc}，下列方程式正确的是？`,
+          options: [`A. ${eq}`, "B. H2 + O = H2O", "C. CO + O = CO2", "D. Mg + O = MgO2"],
+          answer: 0,
+          variant: {
+            stem: "同类变式：书写化学方程式时，为什么要配平？",
+            options: ["A. 遵守质量守恒定律", "B. 让字更漂亮", "C. 减少元素种类", "D. 改变物质颜色"],
+            answer: 0
+          },
+          explanation: makeExplanation("化学方程式与质量守恒", "方程式不能只写物质，还要注意原子个数守恒。", "先写反应物和生成物，再配平。", `正确方程式为 ${eq}。`, "同类题：换一个常见反应继续判断和配平。")
+        });
+      }
+    }
+
+    addQualityUpgradeBank();
+
+    function addExamReadyBank() {
+      const add = (q) => questions.push(q);
+      const ex = (exam, error, method, answerText, similar) => makeExplanation(exam, error, method, answerText, similar);
+
+      const examItems = [
+        ["数学", "函数图像", "已知一次函数 y = kx + b 经过点(0,2)，且随x增大y增大。下列判断正确的是？", ["A. b=2，k>0", "B. b=0，k<0", "C. b=2，k<0", "D. b<0，k>0"], 0],
+        ["数学", "几何证明", "在△ABC中，AB=AC，∠A=40°，则∠B的度数是？", ["A. 40°", "B. 70°", "C. 80°", "D. 100°"], 1],
+        ["语文", "现代文阅读", "阅读片段：父亲把旧自行车擦了又擦，推到我面前说：路远，但你要自己骑过去。文中“旧自行车”最可能有什么作用？", ["A. 推动情节并寄托父亲的期望", "B. 说明天气寒冷", "C. 介绍交通规则", "D. 表示作者讨厌学习"], 0],
+        ["语文", "文言文理解", "“温故而知新，可以为师矣”中“故”的意思更接近哪一项？", ["A. 旧知识", "B. 事故", "C. 故意", "D. 朋友"], 0],
+        ["英语", "完形/语法语境", "Tom was tired, ____ he kept practicing because the match was coming.", ["A. but（但是）", "B. or（否则）", "C. if（如果）", "D. because（因为）"], 0, "汤姆很累，____ 他仍继续训练，因为比赛快到了。"],
+        ["英语", "阅读理解", "Mina practiced speaking English for one minute every day. Now she can introduce herself clearly. What helped Mina?", ["A. daily practice（日常练习）", "B. sleeping late（晚睡）", "C. buying gifts（买礼物）", "D. missing class（缺课）"], 0, "米娜每天练习一分钟英语口语。现在她能清楚地介绍自己。是什么帮助了她？"],
+        ["物理", "实验探究", "探究电流与电压的关系时，应保持哪个量不变？", ["A. 电阻", "B. 电压", "C. 电流", "D. 时间"], 0],
+        ["物理", "图像分析", "某物体做匀速直线运动，s-t图像应接近哪种形状？", ["A. 过原点的直线", "B. 水平直线", "C. 曲线", "D. 无规律折线"], 0],
+        ["化学", "实验操作", "加热试管中的液体时，下列操作正确的是？", ["A. 试管口不能对着人", "B. 液体装满试管", "C. 试管外壁有水直接加热", "D. 用手拿试管"], 0],
+        ["化学", "质量守恒", "化学反应前后一定不变的是？", ["A. 原子的种类和数目", "B. 分子的种类", "C. 物质的颜色", "D. 物质的状态"], 0],
+        ["地理", "区域读图", "读材料：某地夏季高温多雨，冬季温和少雨，最可能属于哪类气候？", ["A. 亚热带季风气候", "B. 极地气候", "C. 热带沙漠气候", "D. 高原山地气候"], 0],
+        ["生物", "实验探究", "探究光照对植物生长的影响时，实验组和对照组主要不同于？", ["A. 光照条件", "B. 水分和土壤同时不同", "C. 植物种类不同", "D. 花盆大小不同"], 0]
+      ];
+
+      for (let i = 0; i < 2400; i++) {
+        const [subject, point, stem, options, answer, translation] = examItems[i % examItems.length];
+        add({
+          id: `exam-ready-${i}`,
+          subject,
+          point,
+          type: "考试题型",
+          difficulty: i % 5 === 0 ? "提升" : "保分",
+          stem,
+          translation,
+          options,
+          answer,
+          variant: {
+            stem: `同类变式：${stem}`,
+            options,
+            answer
+          },
+          explanation: ex(point, "这类题要回到考试考点，不能只凭感觉。", "先识别题型，再找题干关键词和对应知识点。", "按题干条件逐项排除，保留最符合的一项。", "同类题换材料、换问法，不只换数字。")
+        });
+      }
+    }
+
+    addExamReadyBank();
+
+    function filterLowQualityQuestions() {
+      const badPatterns = ["复习方式", "只读一遍", "只看翻译", "只背作者", "字更漂亮", "题目长短", "字体大小"];
+      for (let i = questions.length - 1; i >= 0; i--) {
+        const q = questions[i];
+        const text = [q.stem, ...(q.options || []), q.variant?.stem || "", ...(q.variant?.options || [])].join(" ");
+        if (badPatterns.some(p => text.includes(p))) questions.splice(i, 1);
+      }
+    }
+
+    filterLowQualityQuestions();
+
+    function addCurriculumCoreBank() {
+      const add = (q) => questions.push(q);
+      const ex = (exam, error, method, answerText, similar) => makeExplanation(exam, error, method, answerText, similar);
+      const pools = [
+        ["语文", "现代文阅读", "阅读片段：母亲没有说话，只把那盏旧台灯往我书桌前推了推。多年后，我才明白，那束光照着的不只是作业本。句中“旧台灯”的作用最恰当的是？", ["A. 作为线索，寄托母亲默默的关爱", "B. 说明台灯很贵", "C. 表现作者讨厌学习", "D. 介绍电器使用方法"], 0],
+        ["语文", "文言文理解", "“温故而知新，可以为师矣”中“故”的意思更接近哪一项？", ["A. 旧知识", "B. 事故", "C. 故意", "D. 朋友"], 0],
+        ["语文", "古诗赏析", "“大漠孤烟直，长河落日圆”中“直”“圆”两字的表达效果，理解最准确的是？", ["A. 写出边塞景象的开阔、雄浑和画面感", "B. 说明作者心情恐惧", "C. 表示道路很直、太阳很小", "D. 只是在凑字数"], 0],
+        ["英语", "阅读细节", "Emma read one short article every morning and wrote down five new words. What did Emma do every morning?", ["A. read one short article（读一篇短文）", "B. watched a movie（看电影）", "C. bought a notebook（买笔记本）", "D. cleaned the classroom（打扫教室）"], 0, "艾玛每天早上读一篇短文并记下五个新词。她每天早上做什么？"],
+        ["英语", "完形语境", "The problem was difficult, ____ nobody gave up.", ["A. but（但是）", "B. because（因为）", "C. if（如果）", "D. before（在……之前）"], 0, "这道题很难，____ 没有人放弃。"],
+        ["英语", "写作句型", "Which sentence is better for giving advice in a school-life composition?", ["A. We should make a plan before taking action.（行动前应制定计划）", "B. Plan action before should we.", "C. I good very study.", "D. Because happy."], 0, "哪一句更适合在校园生活作文中表达建议？"],
+        ["数学", "几何证明", "已知AB=AC，D为BC中点。若要证明AD⊥BC，最关键的依据是？", ["A. 等腰三角形三线合一", "B. 两点之间线段最短", "C. 平均数公式", "D. 概率公式"], 0],
+        ["数学", "函数综合", "一次函数图像经过(0,3)和(2,7)，它的函数表达式是？", ["A. y=2x+3", "B. y=3x+2", "C. y=-2x+3", "D. y=2x-3"], 0],
+        ["数学", "二次函数预习", "抛物线 y=(x-2)²+1 的顶点坐标是？", ["A. (2,1)", "B. (-2,1)", "C. (1,2)", "D. (0,1)"], 0],
+        ["物理", "实验探究", "探究影响滑动摩擦力大小的因素时，用弹簧测力计水平匀速拉动木块，目的是让摩擦力大小等于什么？", ["A. 拉力", "B. 重力", "C. 质量", "D. 体积"], 0],
+        ["物理", "电路识别", "两个小灯泡串联时，若其中一个灯泡断路，另一个灯泡会怎样？", ["A. 不亮", "B. 更亮", "C. 亮度不变", "D. 变成电源"], 0],
+        ["化学", "实验探究", "检验氧气常用的方法是？", ["A. 将带火星木条伸入瓶中，木条复燃", "B. 闻气味", "C. 加水变蓝", "D. 观察是否有颜色"], 0],
+        ["化学", "物质推断", "某无色气体能使澄清石灰水变浑浊，该气体最可能是？", ["A. 二氧化碳", "B. 氧气", "C. 氢气", "D. 氮气"], 0],
+        ["地理", "经纬网", "某地位于30°N、104°E，判断其半球位置正确的是？", ["A. 北半球、东半球", "B. 南半球、西半球", "C. 北半球、西半球", "D. 南半球、东半球"], 0],
+        ["地理", "中国地理", "四川盆地农业发展的有利自然条件主要是？", ["A. 热量较充足，水源条件较好", "B. 全年严寒", "C. 沙漠广布", "D. 海拔最高"], 0],
+        ["生物", "人体生理", "人体消化和吸收营养物质的主要场所是？", ["A. 小肠", "B. 胃", "C. 口腔", "D. 食道"], 0],
+        ["生物", "遗传变异", "亲代和子代之间相似的现象称为？", ["A. 遗传", "B. 变异", "C. 蒸腾", "D. 呼吸"], 0]
+      ];
+      for (let i = 0; i < 5200; i++) {
+        const [subject, point, stem, options, answer, translation] = pools[i % pools.length];
+        add({
+          id: `core-ready-${i}`,
+          subject,
+          point,
+          type: "考试题型",
+          difficulty: i % 5 === 0 ? "提升" : "保分",
+          stem,
+          translation,
+          options,
+          answer,
+          variant: { stem: `同类变式：${stem}`, options, answer },
+          explanation: ex(point, "必须回到教材考点和考试设问，不能只凭感觉。", "先识别题型，再抓题干关键词和对应知识点。", "按条件逐项排除，选择最符合考点的一项。", "同类变式会换材料、换设问，不只换数字。")
+        });
+      }
+    }
+
+    addCurriculumCoreBank();
+
+    const externalQuestions = Object.values(window.KUNTAI_BANK || {}).flat();
+    const priorityQuestions = Object.values(window.KUNTAI_PRIORITY_BANK || {}).flat();
+    if (externalQuestions.length) {
+      questions.splice(0, questions.length, ...externalQuestions, ...priorityQuestions);
+    }
+
+    function enforceQuestionQuality() {
+      const normalize = (text = "") => text
+        .replace(/^同类变式[:：]?/, "")
+        .replace(/[0-9０-９.()\-+×÷=°]+/g, "#")
+        .replace(/\s+/g, "")
+        .replace(/[，。！？、；：“”‘’《》]/g, "")
+        .slice(0, 140);
+      const seenTemplates = new Set();
+      const approved = [];
+      for (const q of questions) {
+        const answerMode = q.answerMode || "choice";
+        const validChoice = Number.isInteger(q.answer) && q.answer >= 0 && q.answer < (q.options?.length || 0);
+        const validText = answerMode !== "choice"
+          && Boolean(q.acceptedAnswers?.length || q.requiredKeywords?.length);
+        const validAnswer = answerMode === "choice" ? validChoice : validText;
+        const validExplanation = Array.isArray(q.explanation?.steps) && q.explanation.steps.length >= 3;
+        const originalSignature = normalize(`${q.stem}|${q.audioText || ""}`);
+        const variantSignature = normalize(`${q.variant?.stem || ""}|${q.variant?.audioText || ""}`);
+        const validVariant = q.variant && variantSignature && variantSignature !== originalSignature;
+        const templateKey = `${q.subject}|${q.point}|${originalSignature}`;
+        if (!validAnswer || !validExplanation || !validVariant || seenTemplates.has(templateKey)) continue;
+        seenTemplates.add(templateKey);
+        q.qualityStatus = "approved";
+        approved.push(q);
+      }
+      questions.splice(0, questions.length, ...approved);
+    }
+
+    enforceQuestionQuality();
+
+    const bankPlan = [
+      ["数学", 2400, "已学保分、函数几何、综合提升、二次函数/圆/相似预习"],
+      ["英语", 2100, "1600-2000核心词、短语、语法、完形、阅读、写作"],
+      ["语文", 1700, "必背古诗文、文言文、现代文、名著、作文"],
+      ["物理", 1500, "力学、压强浮力、电学、实验、图像与模型"],
+      ["化学", 1200, "元素符号、化学式、实验、氧气水、方程式"],
+      ["地理", 650, "地图、地球运动、中国地理、区域读图"],
+      ["生物", 650, "人体、生物圈、遗传、生殖发育、实验探究"],
+      ["回收变式池", 1800, "次日保分变式、3天同类变式、7天混合小测、15天回收，不推原题"]
+    ];
+
+    const state = JSON.parse(localStorage.getItem("jintaiTutorState") || "{}");
+    state.done ??= 0;
+    state.correct ??= 0;
+    state.mistakes ??= [];
+    state.current ??= 0;
+    state.currentQuestionId ??= "";
+    state.seenQuestionIds ??= [];
+    state.practiceSubject ??= "";
+    state.pendingRecoveryId ??= "";
+    state.seenByMode ??= {};
+    state.practiceQueue ??= [];
+    state.practiceQueueSubject ??= "";
+    state.practiceQueueDate ??= "";
+    const localDateKey = () => {
+      const now = new Date();
+      const pad = value => String(value).padStart(2, "0");
+      return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+    };
+    state.bySubject ??= {};
+    state.dayStarted ??= localDateKey();
+    state.programStartDate ??= state.dayStarted;
+    const today = localDateKey();
+    let programDay = Math.min(55, Math.max(1,
+      Math.floor((new Date(`${today}T00:00:00`) - new Date(`${state.programStartDate}T00:00:00`)) / 86400000) + 1
+    ));
+    let subjectTargets = window.KuntaiPriorityEngine.targetsForDay(programDay);
+    state.history ??= [];
+    state.dailyDone ??= 0;
+    state.dailyCorrect ??= 0;
+    state.dailyBySubject ??= {};
+    state.todayMistakes ??= [];
+    state.dailyQueue ??= [];
+    state.weaknessStats ??= {};
+    if (state.schedulerVersion !== "jintai-weakness-v1") {
+      state.schedulerVersion = "jintai-weakness-v1";
+      state.programStartDate = today;
+      programDay = 1;
+      subjectTargets = window.KuntaiPriorityEngine.targetsForDay(programDay);
+      state.dayStarted = today;
+      state.dailyDone = 0;
+      state.dailyCorrect = 0;
+      state.dailyBySubject = {};
+      state.todayMistakes = [];
+      state.dailyQueue = [];
+      state.practiceQueue = [];
+      state.practiceQueueSubject = "";
+      state.practiceQueueDate = "";
+      state.currentQuestionId = "";
+      localStorage.setItem("jintaiTutorState", JSON.stringify(state));
+    }
+    if (state.dayStarted !== today) {
+      state.history.push({
+        date: state.dayStarted,
+        done: state.dailyDone,
+        correct: state.dailyCorrect,
+        bySubject: state.dailyBySubject,
+        mistakes: state.todayMistakes
+      });
+      state.dayStarted = today;
+      state.dailyDone = 0;
+      state.dailyCorrect = 0;
+      state.dailyBySubject = {};
+      state.todayMistakes = [];
+      state.dailyQueue = [];
+      state.practiceQueue = [];
+      state.practiceQueueSubject = "";
+      state.practiceQueueDate = "";
+      state.currentQuestionId = "";
+      state.practiceSubject = "";
+    }
+    let sharedReport = null;
+    if (location.hash.startsWith("#report=")) {
+      try {
+        sharedReport = JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(8)))));
+      } catch (error) {
+        sharedReport = null;
+      }
+    }
+    let selected = null;
+    let submitted = false;
+    let activeStep = 0;
+    let timer = null;
+    let englishAudio = null;
+    let englishAudioFinish = null;
+    let englishAudioGeneration = 0;
+    let englishAudioPlaying = false;
+
+    const $ = (s) => document.querySelector(s);
+    const $$ = (s) => [...document.querySelectorAll(s)];
+    const practiceTargets = {
+      "数学": 12,
+      "英语": 12,
+      "语文": 10,
+      "物理": 10,
+      "化学": 8,
+      "地理": 8,
+      "生物": 8
+    };
+
+    function practiceModeKey(subject = state.practiceSubject) {
+      return subject ? `专项:${subject}:${today}` : "自测";
+    }
+
+    function practiceTarget(subject) {
+      return practiceTargets[subject] || 10;
+    }
+
+    function orderedSubjectPool(subject) {
+      const subjectPool = questions.filter(q => q.subject === subject);
+      const priority = window.KuntaiPriorityEngine.interleaveByWeakness(
+        subjectPool.filter(q => q.priorityProfile === "jintai-2026-07")
+      );
+      const regular = subjectPool.filter(q => q.priorityProfile !== "jintai-2026-07");
+      return [...priority, ...regular];
+    }
+
+    function buildPracticeQueue(subject) {
+      const modeKey = practiceModeKey(subject);
+      const alreadyDone = new Set(state.seenByMode[modeKey] || []);
+      const selectedIds = orderedSubjectPool(subject)
+        .filter(q => !alreadyDone.has(q.id) && !state.seenQuestionIds.includes(q.id))
+        .slice(0, practiceTarget(subject))
+        .map(q => q.id);
+      state.practiceQueue = selectedIds;
+      state.practiceQueueSubject = subject;
+      state.practiceQueueDate = today;
+      return selectedIds;
+    }
+
+    function activePracticeQueue(subject = state.practiceSubject) {
+      if (!subject) return [];
+      if (
+        state.practiceQueueSubject !== subject ||
+        state.practiceQueueDate !== today ||
+        !Array.isArray(state.practiceQueue) ||
+        !state.practiceQueue.length
+      ) {
+        buildPracticeQueue(subject);
+      }
+      return state.practiceQueue
+        .map(id => questions.find(q => q.id === id))
+        .filter(Boolean);
+    }
+
+    function mixedPool() {
+      const subjects = Object.keys(subjectTargets);
+      const queued = new Set(state.dailyQueue);
+      const groups = Object.fromEntries(subjects.map(subject => {
+        const remaining = Math.max(0, subjectTargets[subject] - (state.dailyBySubject[subject]?.done || 0));
+        const queuedRemaining = state.dailyQueue
+          .map(id => questions.find(q => q.id === id))
+          .filter(q => q?.subject === subject && !state.seenQuestionIds.includes(q.id)).length;
+        const needed = Math.max(0, remaining - queuedRemaining);
+        const available = questions
+          .filter(q => q.subject === subject && !state.seenQuestionIds.includes(q.id) && !queued.has(q.id));
+        const priority = programDay <= 21
+          ? window.KuntaiPriorityEngine.interleaveByWeakness(
+            available.filter(q => q.priorityProfile === "jintai-2026-07")
+          )
+          : [];
+        const regular = programDay <= 21
+          ? available.filter(q => q.priorityProfile !== "jintai-2026-07")
+          : available;
+        return [subject, [...priority, ...regular].slice(0, needed)];
+      }));
+      const additions = [];
+      const maxNeeded = Math.max(0, ...subjects.map(subject => groups[subject].length));
+      for (let round = 0; round < maxNeeded; round += 1) {
+        subjects.forEach(subject => {
+          if (groups[subject][round]) additions.push(groups[subject][round].id);
+        });
+      }
+      state.dailyQueue.push(...additions);
+      return state.dailyQueue.map(id => questions.find(q => q.id === id)).filter(Boolean);
+    }
+
+    function modePool() {
+      if (!state.practiceSubject) return mixedPool();
+      return activePracticeQueue();
+    }
+
+    function selectNextQuestion() {
+      const modeKey = practiceModeKey();
+      const modeSeen = new Set(state.seenByMode[modeKey] || []);
+      const next = modePool().find(q => !modeSeen.has(q.id) && !state.seenQuestionIds.includes(q.id));
+      if (!next) return null;
+      state.currentQuestionId = next.id;
+      return next;
+    }
+
+    function currentQuestion() {
+      const current = questions.find(q => q.id === state.currentQuestionId);
+      if (current && (!state.practiceSubject || current.subject === state.practiceSubject)) return current;
+      return selectNextQuestion();
+    }
+
+    function setNextQuestion() {
+      const dailyComplete = !state.practiceSubject && Object.entries(subjectTargets)
+        .every(([subject, target]) => (state.dailyBySubject[subject]?.done || 0) >= target);
+      if (dailyComplete) {
+        alert("今日七科自测已完成。错题完成同类变式后，可进入专项练习。");
+        return false;
+      }
+      if (state.practiceSubject) {
+        const modeKey = practiceModeKey();
+        const done = (state.seenByMode[modeKey] || []).length;
+        const total = activePracticeQueue().length || practiceTarget(state.practiceSubject);
+        if (done >= total) {
+          alert(`${state.practiceSubject}专项本轮已完成，共${done}题。今天这科先停，不继续加题。`);
+          return false;
+        }
+      }
+      state.currentQuestionId = "";
+      const next = selectNextQuestion();
+      if (!next) {
+        alert(`当前${state.practiceSubject || "自测"}题库已全部完成，可到错题讲解继续回收薄弱点。`);
+        return false;
+      }
+      return true;
+    }
+
+    function save() {
+      localStorage.setItem("jintaiTutorState", JSON.stringify(state));
+      updateStats();
+    }
+
+    function updateStats() {
+      $("#doneCount").textContent = state.dailyDone;
+      $("#accuracy").textContent = state.dailyDone ? Math.round(state.dailyCorrect / state.dailyDone * 100) + "%" : "0%";
+      $("#mistakeCount").textContent = state.mistakes.length;
+      $("#mistakeNavCount").textContent = state.mistakes.length;
+      $("#todayScore").textContent = state.dailyDone ? Math.round(state.dailyCorrect / state.dailyDone * 100) : 0;
+      $("#navDay").textContent = `Day ${programDay}`;
+      $("#taskDay").textContent = `Day ${programDay}`;
+      const taskCopy = programDay <= 21
+        ? [
+          "数学14题：函数、几何、方程薄弱点",
+          "英语10题：短文填空、表格、词汇、阅读表达",
+          "语文10题：说明文、古诗文、阅读与语言应用",
+          "物理10题：摩擦力、浮力压强、杠杆滑轮、B卷函数模型",
+          "化学8题：教材入门、实验与微观概念",
+          "地理4题 + 生物4题：读图、材料与实验探究"
+        ]
+        : [
+          "数学12题：几何、函数、不等式与综合应用",
+          "英语10题：词汇语法、完形、阅读与表格",
+          "语文10题：说明文、现代文、古诗文与语言应用",
+          "物理8题：力学、浮力压强、杠杆滑轮与图像",
+          "化学8题：教材、实验与微观概念",
+          "地理6题 + 生物6题：读图、材料与实验探究"
+        ];
+      const taskRows = $$(".today-box .panel")[0]?.querySelectorAll(".task-row span") || [];
+      taskCopy.forEach((text, index) => {
+        if (taskRows[index]) taskRows[index].textContent = text;
+      });
+    }
+
+    function renderQuestion() {
+      const q = currentQuestion();
+      if (!q) {
+        const subject = state.practiceSubject || "今日自测";
+        const done = state.practiceSubject
+          ? (state.seenByMode[practiceModeKey()] || []).length
+          : state.dailyDone;
+        const total = state.practiceSubject
+          ? (state.practiceQueue.length || practiceTarget(state.practiceSubject))
+          : Object.values(subjectTargets).reduce((sum, target) => sum + target, 0);
+        stopEnglishAudio();
+        englishAudioPlaying = false;
+        $("#readQuestionBtn").classList.add("hidden");
+        $("#englishAudioStatus").textContent = "";
+        $("#questionMeta").innerHTML = `<span class="pill">${subject}</span><span class="pill amber">已完成</span>`;
+        $("#questionStem").textContent = `${subject}已完成：${done}/${total}题。`;
+        $("#questionTranslation").classList.remove("hidden");
+        $("#questionTranslation").textContent = "今天这一轮到这里结束，剩下时间用于错题讲解和同类变式回收。";
+        $("#options").classList.add("hidden");
+        $("#options").innerHTML = "";
+        $("#textAnswer").classList.add("hidden");
+        $("#answerReveal").classList.add("hidden");
+        $("#submitBtn").classList.add("hidden");
+        $("#nextBtn").classList.add("hidden");
+        $("#inlinePlayer").classList.add("hidden");
+        return;
+      }
+      const answerMode = q.answerMode || "choice";
+      stopEnglishAudio();
+      englishAudioPlaying = false;
+      selected = null;
+      submitted = false;
+      $("#inlinePlayer").classList.add("hidden");
+      $("#readQuestionBtn").classList.toggle("hidden", q.subject !== "英语");
+      $("#readQuestionBtn").textContent = "朗读英文题目";
+      $("#englishAudioStatus").textContent = q.subject === "英语" ? "点击播放" : "";
+      $("#questionMeta").innerHTML = [
+        q.subject, q.point, q.type, q.difficulty, "成都同难度原创变式"
+      ].map((x, i) => `<span class="pill ${i === 3 ? "amber" : ""}">${x}</span>`).join("");
+      $("#questionStem").textContent = q.stem;
+      $("#questionTranslation").classList.toggle("hidden", !q.translation);
+      $("#questionTranslation").textContent = q.translation || "";
+      $("#options").classList.toggle("hidden", answerMode !== "choice");
+      $("#options").innerHTML = (q.options || []).map((op, i) => `<button class="option" data-i="${i}">${op}</button>`).join("");
+      $("#textAnswer").classList.toggle("hidden", answerMode === "choice");
+      $("#textAnswer").value = "";
+      $("#textAnswer").disabled = false;
+      $("#textAnswer").placeholder = answerMode === "keywords"
+        ? "用英文完整回答，注意关键词和语法"
+        : "输入听到的英文或订正后的完整句子";
+      $("#answerReveal").classList.add("hidden");
+      $("#answerReveal").textContent = "";
+      $("#submitBtn").classList.remove("hidden");
+      $("#nextBtn").classList.add("hidden");
+      $("#nextBtn").disabled = false;
+      $("#nextBtn").textContent = "下一题";
+      $$("input[name='confidence']").forEach((r, i) => r.checked = i === 0);
+      $$(".option").forEach(btn => btn.addEventListener("click", () => {
+        if (submitted) return;
+        selected = Number(btn.dataset.i);
+        $$(".option").forEach(b => b.classList.remove("selected"));
+        btn.classList.add("selected");
+      }));
+    }
+
+    function answerText(q) {
+      if ((q.answerMode || "choice") === "choice") return q.options[q.answer];
+      return q.acceptedAnswers?.[0] || (q.requiredKeywords || []).join("、");
+    }
+
+    function addMistake(q, reason, studentAnswer = selected) {
+      const item = {
+        key: q.id + "-" + reason,
+        id: q.id,
+        subject: q.subject,
+        point: q.point,
+        reason,
+        stem: q.stem,
+        answer: answerText(q),
+        student: (q.answerMode || "choice") === "choice"
+          ? (studentAnswer === null || studentAnswer === undefined ? "未选择" : q.options[studentAnswer])
+          : (String(studentAnswer || "").trim() || "未作答"),
+        reviewDue: true,
+        reviewPlan: ["当日讲解后变式", "次日保分变式", "3天同类变式", "7天混合小测", "15天回收检查"],
+        createdAt: new Date().toLocaleString()
+      };
+      if (!state.mistakes.some(m => m.key === item.key)) state.mistakes.unshift(item);
+      if (!state.todayMistakes.some(m => m.key === item.key)) state.todayMistakes.unshift(item);
+    }
+
+    function submitAnswer(forceUnsteady = false) {
+      const q = currentQuestion();
+      if (!q) return;
+      const answerMode = q.answerMode || "choice";
+      const response = answerMode === "choice" ? selected : $("#textAnswer").value;
+      const confidence = $("input[name='confidence']:checked").value;
+      if ((response === null || String(response).trim() === "") && !forceUnsteady) {
+        alert(answerMode === "choice" ? "先选一个答案，或者点“标记不稳”。" : "先输入答案，或者点“标记不稳”。");
+        return;
+      }
+      submitted = true;
+      state.done += 1;
+      const modeKey = practiceModeKey();
+      state.seenByMode[modeKey] ??= [];
+      if (!state.seenByMode[modeKey].includes(q.id)) state.seenByMode[modeKey].push(q.id);
+      if (!state.seenQuestionIds.includes(q.id)) state.seenQuestionIds.push(q.id);
+      const isRight = window.KuntaiPriorityEngine.evaluateAnswer(q, response);
+      if (q.weaknessCode) {
+        const weakness = state.weaknessStats[q.weaknessCode] ??= {
+          subject: q.subject,
+          point: q.point,
+          done: 0,
+          correct: 0,
+          recent: []
+        };
+        weakness.done += 1;
+        if (isRight && confidence === "steady" && !forceUnsteady) weakness.correct += 1;
+        weakness.recent.push(isRight && confidence === "steady" && !forceUnsteady ? 1 : 0);
+        weakness.recent = weakness.recent.slice(-7);
+      }
+      state.bySubject[q.subject] ??= { done: 0, correct: 0, mistakes: 0 };
+      state.bySubject[q.subject].done += 1;
+      if (!state.practiceSubject) {
+        state.dailyDone += 1;
+        state.dailyBySubject[q.subject] ??= { done: 0, correct: 0, mistakes: 0 };
+        state.dailyBySubject[q.subject].done += 1;
+      }
+      if (isRight && confidence === "steady" && !forceUnsteady) {
+        state.bySubject[q.subject].correct += 1;
+        if (!state.practiceSubject) {
+          state.dailyCorrect += 1;
+          state.dailyBySubject[q.subject].correct += 1;
+        }
+      } else {
+        state.bySubject[q.subject].mistakes += 1;
+        if (!state.practiceSubject) state.dailyBySubject[q.subject].mistakes += 1;
+      }
+      if (isRight && confidence === "steady" && !forceUnsteady) state.correct += 1;
+      const needsRecovery = !isRight || confidence !== "steady" || forceUnsteady;
+      if (needsRecovery) {
+        state.pendingRecoveryId = q.id;
+        addMistake(q, isRight ? "码不准/超时题" : "错题", response);
+        renderPlayer(q, "#inlinePlayer", isRight ? "这道题虽然答对了，但你标记为不稳，系统仍会安排讲解和变式回收。" : "这道题已自动进入错题讲解。");
+      }
+      $$(".option").forEach((btn, i) => {
+        if (i === q.answer) btn.classList.add("correct");
+        if (i === selected && i !== q.answer) btn.classList.add("wrong");
+      });
+      $("#textAnswer").disabled = true;
+      if (q.revealAfterSubmit) {
+        $("#answerReveal").textContent = q.revealAfterSubmit;
+        $("#answerReveal").classList.remove("hidden");
+      }
+      $("#submitBtn").classList.add("hidden");
+      $("#nextBtn").classList.remove("hidden");
+      $("#nextBtn").disabled = needsRecovery;
+      $("#nextBtn").textContent = needsRecovery ? "做对同类题后继续" : "下一题";
+      save();
+    }
+
+    function pickVoice(lang) {
+      const voices = window.speechSynthesis?.getVoices?.() || [];
+      return voices.find(v => v.lang === lang) || voices.find(v => v.lang?.startsWith(lang.slice(0, 2))) || null;
+    }
+
+    function loadVoices() {
+      return new Promise(resolve => {
+        if (!("speechSynthesis" in window)) {
+          resolve([]);
+          return;
+        }
+        const current = window.speechSynthesis.getVoices();
+        if (current.length) {
+          resolve(current);
+          return;
+        }
+        let done = false;
+        const finish = () => {
+          if (done) return;
+          done = true;
+          window.speechSynthesis.onvoiceschanged = null;
+          resolve(window.speechSynthesis.getVoices());
+        };
+        window.speechSynthesis.onvoiceschanged = finish;
+        setTimeout(finish, 900);
+      });
+    }
+
+    function speak(text, lang = "zh-CN") {
+      if (!("speechSynthesis" in window)) return false;
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = lang;
+      const voice = pickVoice(lang);
+      if (voice) u.voice = voice;
+      u.rate = 0.95;
+      u.pitch = 1;
+      window.speechSynthesis.speak(u);
+      return true;
+    }
+
+    function stopEnglishAudio() {
+      englishAudioGeneration += 1;
+      if (englishAudio) {
+        englishAudio.pause();
+        englishAudio.removeAttribute("src");
+        englishAudio.load();
+        englishAudio = null;
+      }
+      if (englishAudioFinish) {
+        englishAudioFinish(false);
+        englishAudioFinish = null;
+      }
+      window.speechSynthesis?.cancel();
+    }
+
+    function cleanEnglishAudioText(text) {
+      return text
+        .replace(/[（(][^()（）]*[\u3400-\u9fff][^()（）]*[)）]/g, "")
+        .replace(/[\u3400-\u9fff]/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function splitEnglishAudioText(text, maxLength = 160) {
+      const sentences = text.match(/[^.!?]+[.!?]?/g) || [text];
+      const chunks = [];
+      sentences.forEach(sentence => {
+        const words = sentence.trim().split(/\s+/);
+        let chunk = "";
+        words.forEach(word => {
+          const next = chunk ? `${chunk} ${word}` : word;
+          if (next.length > maxLength && chunk) {
+            chunks.push(chunk);
+            chunk = word;
+          } else {
+            chunk = next;
+          }
+        });
+        if (chunk) chunks.push(chunk);
+      });
+      return chunks;
+    }
+
+    function playEnglishAudioChunk(text, generation) {
+      return new Promise((resolve, reject) => {
+        const url = `https://fanyi.baidu.com/gettts?lan=en&text=${encodeURIComponent(text)}&spd=3&source=web`;
+        const audio = new Audio(url);
+        englishAudio = audio;
+        englishAudioFinish = resolve;
+        audio.preload = "auto";
+        audio.onended = () => {
+          englishAudio = null;
+          englishAudioFinish = null;
+          resolve(true);
+        };
+        audio.onerror = () => {
+          englishAudio = null;
+          englishAudioFinish = null;
+          reject(new Error("online-audio-error"));
+        };
+        audio.play().catch(reject);
+        if (generation !== englishAudioGeneration) resolve(false);
+      });
+    }
+
+    function playSystemEnglish(text, setStatus) {
+      return new Promise(async resolve => {
+        if (!("speechSynthesis" in window)) {
+          resolve(false);
+          return;
+        }
+        await loadVoices();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = "en-US";
+        utterance.rate = 0.9;
+        const voice = pickVoice("en-US");
+        if (voice) utterance.voice = voice;
+        let finished = false;
+        let started = false;
+        const finish = value => {
+          if (finished) return;
+          finished = true;
+          clearTimeout(startTimeout);
+          resolve(value);
+        };
+        const startTimeout = setTimeout(() => {
+          if (!started) finish(false);
+        }, 3500);
+        utterance.onstart = () => {
+          started = true;
+          clearTimeout(startTimeout);
+          setStatus("正在播放系统英文语音");
+        };
+        utterance.onend = () => finish(true);
+        utterance.onerror = () => finish(false);
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(utterance);
+      });
+    }
+
+    async function playEnglishAudio(text, setStatus) {
+      stopEnglishAudio();
+      const generation = englishAudioGeneration;
+      const cleaned = cleanEnglishAudioText(text);
+      const chunks = splitEnglishAudioText(cleaned);
+      if (!chunks.length) return "failed";
+      setStatus("正在启动系统英文语音");
+      const systemPlayed = await playSystemEnglish(cleaned, setStatus);
+      if (generation !== englishAudioGeneration) return "stopped";
+      if (systemPlayed) return "system";
+      try {
+        for (let index = 0; index < chunks.length; index += 1) {
+          if (generation !== englishAudioGeneration) return "stopped";
+          setStatus(`系统语音不可用，正在播放在线音频 ${index + 1}/${chunks.length}`);
+          const played = await playEnglishAudioChunk(chunks[index], generation);
+          if (!played) return "stopped";
+        }
+        return "online";
+      } catch (error) {
+        if (generation !== englishAudioGeneration) return "stopped";
+        setStatus("当前浏览器拦截了英语音频，请点右上角用系统浏览器打开");
+        return "failed";
+      }
+    }
+
+    function renderPlayer(q, targetSelector, intro) {
+      const target = $(targetSelector);
+      target.classList.remove("hidden");
+      activeStep = 0;
+      const steps = q.explanation.steps;
+      target.innerHTML = `
+        <div>
+          <div class="board">
+            <h3>${intro}</h3>
+            ${steps.map((s, i) => `<div class="board-step ${i === 0 ? "active" : ""}" data-step="${i}"><b>第${i + 1}步</b>：${s}</div>`).join("")}
+          </div>
+          <div class="controls">
+            <button class="primary" id="playExplain">播放讲解</button>
+            <button id="pauseExplain">暂停</button>
+            <button id="nextStep">下一步</button>
+            <button class="good" id="startVariant">做同类变式</button>
+            <span class="play-status" id="playStatus">未播放</span>
+          </div>
+          <div id="variantBox"></div>
+          <textarea class="textarea" placeholder="学生复盘：我这题错在……下次要……"></textarea>
+        </div>
+        <aside class="side-note">
+          <h3>讲解卡</h3>
+          <dl>
+            <div><dt>考点</dt><dd>${q.explanation.exam}</dd></div>
+            <div><dt>错因提醒</dt><dd>${q.explanation.error}</dd></div>
+            <div><dt>同类题</dt><dd>${q.explanation.similar}</dd></div>
+          </dl>
+        </aside>
+      `;
+      target.querySelector("#playExplain").addEventListener("click", () => playSteps(target, q));
+      target.querySelector("#pauseExplain").addEventListener("click", () => {
+        clearInterval(timer);
+        window.speechSynthesis?.cancel();
+        const status = target.querySelector("#playStatus");
+        if (status) status.textContent = "已暂停";
+        const playBtn = target.querySelector("#playExplain");
+        if (playBtn) playBtn.textContent = "继续播放";
+      });
+      target.querySelector("#nextStep").addEventListener("click", () => showStep(target, Math.min(activeStep + 1, steps.length - 1), q));
+      target.querySelector("#startVariant").addEventListener("click", () => renderVariant(target, q));
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function renderVariant(target, q) {
+      const v = q.variant;
+      const box = target.querySelector("#variantBox");
+      if (!v || !box) return;
+      const variantMode = v.answerMode || "choice";
+      box.innerHTML = `
+        <div class="variant-box">
+          <h3>当日同类变式</h3>
+          <p>${v.stem}</p>
+          ${variantMode === "choice" ? `
+            <div class="variant-options">
+              ${(v.options || []).map((op, i) => `<button data-variant="${i}">${op}</button>`).join("")}
+            </div>
+          ` : `
+            <textarea class="text-answer" data-variant-text placeholder="输入答案"></textarea>
+            <button class="primary" data-check-variant>提交变式答案</button>
+          `}
+          <div class="play-status" style="margin-top:10px">做对这道变式，今天这类错题才算通过。</div>
+        </div>
+      `;
+      const passVariant = passed => {
+        const status = box.querySelector(".play-status");
+        if (passed) {
+          status.textContent = "当日通过：已进入后续回收链，后面只推同类变式，不推原题。";
+          status.style.color = "#1f6655";
+          if (v.revealAfterSubmit) status.textContent += ` ${v.revealAfterSubmit}`;
+          if (target.id === "inlinePlayer") {
+            state.pendingRecoveryId = "";
+            $("#nextBtn").disabled = false;
+            $("#nextBtn").textContent = "下一题";
+            save();
+          }
+        } else {
+          status.textContent = "还没通过：回看讲解，再做一遍同类变式。";
+          status.style.color = "#8b332b";
+        }
+      };
+      box.querySelectorAll("[data-variant]").forEach(btn => btn.addEventListener("click", () => {
+        const chosen = Number(btn.dataset.variant);
+        box.querySelectorAll("[data-variant]").forEach((b, i) => {
+          b.classList.toggle("correct", i === v.answer);
+          b.classList.toggle("wrong", i === chosen && i !== v.answer);
+        });
+        passVariant(chosen === v.answer);
+      }));
+      box.querySelector("[data-check-variant]")?.addEventListener("click", () => {
+        const response = box.querySelector("[data-variant-text]").value;
+        passVariant(window.KuntaiPriorityEngine.evaluateAnswer(v, response));
+      });
+    }
+
+    function showStep(target, i, q) {
+      activeStep = i;
+      target.querySelectorAll(".board-step").forEach((el, idx) => el.classList.toggle("active", idx === i));
+      const ok = speak(q.explanation.steps[i], "zh-CN");
+      const status = target.querySelector("#playStatus");
+      if (status) status.textContent = ok ? `播放中：第${i + 1}步` : `语音不可用，正在播放板书：第${i + 1}步`;
+    }
+
+    function playSteps(target, q) {
+      clearInterval(timer);
+      const playBtn = target.querySelector("#playExplain");
+      if (playBtn) playBtn.textContent = "播放中";
+      showStep(target, 0, q);
+      setTimeout(() => {
+        if (activeStep === 0 && q.explanation.steps.length > 1) showStep(target, 1, q);
+      }, 900);
+      timer = setInterval(() => {
+        if (activeStep >= q.explanation.steps.length - 1) {
+          clearInterval(timer);
+          const status = target.querySelector("#playStatus");
+          if (status) status.textContent = "讲解播放完成";
+          if (playBtn) playBtn.textContent = "重新播放";
+          return;
+        }
+        showStep(target, activeStep + 1, q);
+      }, 3200);
+    }
+
+    function renderMistakes() {
+      const list = $("#mistakeList");
+      if (!state.mistakes.length) {
+        list.innerHTML = `<div class="bank-item"><strong>还没有错题</strong><p>去刷题页故意选错一题，或把题标记为“码不准”，这里会自动出现讲解入口。</p></div>`;
+        $("#mistakePlayer").classList.add("hidden");
+        return;
+      }
+      list.innerHTML = state.mistakes.map((m, i) => `
+        <div class="mistake ${m.reason.includes("码") ? "unsteady" : ""}">
+          <span class="pill ${m.reason.includes("码") ? "amber" : "red"}">${m.reason}</span>
+          <span class="pill">${m.subject} · ${m.point}</span>
+          <p>${m.stem}</p>
+          <p>学生答案：${m.student}<br>正确答案：${m.answer}</p>
+          <p>回收链：${(m.reviewPlan || ["当日讲解后变式", "次日保分变式", "3天同类变式", "7天混合小测", "15天回收检查"]).join(" → ")}</p>
+          <button class="primary" data-explain="${i}">播放动态讲解</button>
+        </div>
+      `).join("");
+      list.querySelectorAll("[data-explain]").forEach(btn => btn.addEventListener("click", () => {
+        const m = state.mistakes[Number(btn.dataset.explain)];
+        const q = questions.find(x => x.id === m.id);
+        renderPlayer(q, "#mistakePlayer", `${m.reason}讲解：先看提示，再听分步板书。`);
+      }));
+    }
+
+    function reportData() {
+      return sharedReport || {
+        date: state.dayStarted,
+        done: state.dailyDone,
+        correct: state.dailyCorrect,
+        mistakes: state.todayMistakes,
+        bySubject: state.dailyBySubject,
+        totalDone: state.done,
+        weaknessStats: state.weaknessStats
+      };
+    }
+
+    function renderParent() {
+      const report = reportData();
+      const subjects = Object.keys(subjectTargets);
+      const completed = subjects.filter(subject => (report.bySubject?.[subject]?.done || 0) >= subjectTargets[subject]).length;
+      const score = report.done ? Math.round((report.correct || 0) / report.done * 100) : 0;
+      $("#parentDate").textContent = report.date || localDateKey();
+      $("#parentCompleted").textContent = `${completed}/${subjects.length}`;
+      $("#parentScore").textContent = score;
+      $("#parentMistakes").textContent = report.mistakes?.length || 0;
+      $("#parentTotal").textContent = report.totalDone ?? report.done ?? 0;
+      $("#parentSubjects").innerHTML = subjects.map(subject => {
+        const item = report.bySubject?.[subject] || { done: 0, correct: 0, mistakes: 0 };
+        const subjectScore = item.done ? Math.round(item.correct / item.done * 100) : 0;
+        const isComplete = item.done >= subjectTargets[subject];
+        return `<div class="bank-item">
+          <strong>${subject} · ${isComplete ? "已完成" : "未完成"}</strong>
+          <p>完成 ${item.done}/${subjectTargets[subject]} 题 · 得分 ${subjectScore} · 错题 ${item.mistakes}</p>
+          <div class="bar" style="--w:${Math.min(item.done / subjectTargets[subject] * 100, 100)}%"><i></i></div>
+        </div>`;
+      }).join("");
+      const weakCounts = {};
+      (report.mistakes || []).forEach(item => {
+        const key = `${item.subject}·${item.point}`;
+        weakCounts[key] = (weakCounts[key] || 0) + 1;
+      });
+      const weak = Object.entries(weakCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+      const profile = Object.values(report.weaknessStats || state.weaknessStats || {})
+        .map(item => {
+          const recentRate = item.recent?.length
+            ? Math.round(item.recent.reduce((sum, value) => sum + value, 0) / item.recent.length * 100)
+            : 0;
+          const status = item.recent?.length >= 7 && recentRate >= 85
+            ? "已达标回收"
+            : recentRate < 80 ? "继续强化" : "重点补弱";
+          return `${item.subject}·${item.point}：${recentRate}%（${status}）`;
+        })
+        .slice(0, 8);
+      $("#parentWeakPoints").textContent = profile.length
+        ? profile.join("；")
+        : (weak.length ? weak.map(([name, count]) => `${name}（${count}题）`).join("、") : "暂无数据");
+    }
+
+    function switchView(name) {
+      $$(".view").forEach(v => v.classList.add("hidden"));
+      $("#" + name + "View").classList.remove("hidden");
+      $$(".nav button, .top-actions [data-view]").forEach(b => b.classList.toggle("active", b.dataset.view === name));
+      if (name === "mistakes") renderMistakes();
+      if (name === "parent") renderParent();
+    }
+
+    $$(".nav button, .top-actions [data-view]").forEach(btn => btn.addEventListener("click", () => switchView(btn.dataset.view)));
+    $$("#startDailyBtn, #startPracticeBtn, #startPreviewBtn").forEach(btn => btn.addEventListener("click", () => {
+      if (state.pendingRecoveryId) {
+        alert("先完成当前错题的同类变式，做对后才能继续。");
+        const pending = questions.find(q => q.id === state.pendingRecoveryId);
+        if (pending) {
+          state.currentQuestionId = pending.id;
+          renderQuestion();
+          renderPlayer(pending, "#inlinePlayer", "这道题仍在订正中：听完讲解并做对同类变式。");
+          $("#submitBtn").classList.add("hidden");
+          $("#nextBtn").classList.remove("hidden");
+          $("#nextBtn").disabled = true;
+          $("#nextBtn").textContent = "做对同类题后继续";
+        }
+        return;
+      }
+      if (btn.id === "startDailyBtn") {
+        const dailyComplete = Object.entries(subjectTargets)
+          .every(([subject, target]) => (state.dailyBySubject[subject]?.done || 0) >= target);
+        if (dailyComplete) {
+          alert("今日七科自测已完成，请进入错题回收或专项练习。");
+          return;
+        }
+        state.practiceSubject = "";
+        state.currentQuestionId = "";
+        selectNextQuestion();
+        save();
+        $("#practiceMode").textContent = "今日自测 · 按科目分段诊断";
+        $$("[data-practice-subject]").forEach(b => b.classList.remove("active"));
+        renderQuestion();
+      }
+      (btn.id === "startPracticeBtn" ? $("#practiceRoute") : $(".question-card")).scrollIntoView({ behavior: "smooth", block: "start" });
+    }));
+    $$("[data-practice-subject]").forEach(btn => btn.addEventListener("click", () => {
+      if (state.pendingRecoveryId) {
+        alert("当前错题还没订正，先做对讲解下方的同类变式。");
+        return;
+      }
+      const subject = btn.dataset.practiceSubject;
+      const pool = questions.filter(q => q.subject === subject);
+      if (pool.length) {
+        state.practiceSubject = subject;
+        buildPracticeQueue(subject);
+        if (!state.practiceQueue.length) {
+          alert(`${subject}专项今天可用题已完成，可换一科或进入错题回收。`);
+          save();
+          renderQuestion();
+          return;
+        }
+        state.currentQuestionId = "";
+        selectNextQuestion();
+        save();
+        renderQuestion();
+        $("#practiceMode").textContent = `${subject}专项 · 固定${state.practiceQueue.length}题`;
+        $$("[data-practice-subject]").forEach(b => b.classList.toggle("active", b === btn));
+        $(".question-card").scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }));
+    $("#submitBtn").addEventListener("click", () => submitAnswer(false));
+    $("#readQuestionBtn").addEventListener("click", async () => {
+      const button = $("#readQuestionBtn");
+      const status = $("#englishAudioStatus");
+      if (englishAudioPlaying) {
+        stopEnglishAudio();
+        englishAudioPlaying = false;
+        button.textContent = "朗读英文题目";
+        status.textContent = "已停止";
+        return;
+      }
+      const q = currentQuestion();
+      const text = q.audioText || [q.stem, ...(q.options || [])].join(". ");
+      englishAudioPlaying = true;
+      button.textContent = "停止朗读";
+      status.textContent = "正在加载英语音频";
+      const result = await playEnglishAudio(text, message => {
+        status.textContent = message;
+      });
+      englishAudioPlaying = false;
+      button.textContent = "重新朗读";
+      if (result === "online") status.textContent = "播放完成";
+      if (result === "system") status.textContent = "系统语音播放完成";
+      if (result === "failed") status.textContent = "当前浏览器禁止音频，请用系统浏览器打开";
+      if (result === "stopped") status.textContent = "已停止";
+    });
+    $("#unsteadyBtn").addEventListener("click", () => submitAnswer(true));
+    $("#nextBtn").addEventListener("click", () => {
+      if (setNextQuestion()) {
+        save();
+        renderQuestion();
+      }
+    });
+    let reportUrl = "";
+    $("#shareReportBtn").addEventListener("click", () => {
+      const payload = {
+        date: state.dayStarted,
+        done: state.dailyDone,
+        correct: state.dailyCorrect,
+        mistakes: state.todayMistakes.slice(0, 50),
+        bySubject: state.dailyBySubject,
+        totalDone: state.done,
+        weaknessStats: state.weaknessStats
+      };
+      reportUrl = `${location.origin}${location.pathname}#report=${btoa(unescape(encodeURIComponent(JSON.stringify(payload))))}`;
+      $("#copyReportBtn").classList.remove("hidden");
+      $("#shareReportStatus").textContent = "报告链接已生成，点击复制后发给家长。";
+    });
+    $("#copyReportBtn").addEventListener("click", async () => {
+      if (!reportUrl) return;
+      await navigator.clipboard.writeText(reportUrl);
+      $("#shareReportStatus").textContent = "已复制，可直接发给家长。";
+    });
+
+    renderQuestion();
+    if (state.pendingRecoveryId) {
+      const pending = questions.find(q => q.id === state.pendingRecoveryId);
+      if (pending) {
+        state.currentQuestionId = pending.id;
+        renderQuestion();
+        renderPlayer(pending, "#inlinePlayer", "继续昨日未完成的订正：听讲解并做对同类变式。");
+        $("#submitBtn").classList.add("hidden");
+        $("#nextBtn").classList.remove("hidden");
+        $("#nextBtn").disabled = true;
+        $("#nextBtn").textContent = "做对同类题后继续";
+      } else {
+        state.pendingRecoveryId = "";
+      }
+    }
+    updateStats();
+    if (sharedReport) switchView("parent");
+  </script>
+</body>
+</html>
+
