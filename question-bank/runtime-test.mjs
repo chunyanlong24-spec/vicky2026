@@ -1,4 +1,4 @@
-import fs from "node:fs";
+﻿import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
 import { fileURLToPath } from "node:url";
@@ -29,7 +29,7 @@ for (const [file] of files) {
   assert(fs.existsSync(target), `缺少题库文件 ${file}`);
   vm.runInContext(fs.readFileSync(target, "utf8"), context, { filename: file });
 }
-for (const file of ["kuntai-english-priority.js", "kuntai-physics-priority.js", "priority-engine.js"]) {
+for (const file of ["kuntai-english-priority.js", "kuntai-physics-priority.js", "kuntai-volume.js", "priority-engine.js"]) {
   const target = path.join(bankDir, file);
   assert(fs.existsSync(target), `缺少个性化文件 ${file}`);
   vm.runInContext(fs.readFileSync(target, "utf8"), context, { filename: file });
@@ -39,7 +39,7 @@ const html = fs.readFileSync(htmlPath, "utf8");
 for (const [file] of files) {
   assert(html.includes(`src="question-bank/${file}"`), `网页未加载 ${file}`);
 }
-for (const file of ["kuntai-english-priority.js", "kuntai-physics-priority.js", "priority-engine.js"]) {
+for (const file of ["kuntai-english-priority.js", "kuntai-physics-priority.js", "kuntai-volume.js", "priority-engine.js"]) {
   assert(html.includes(`src="question-bank/${file}"`), `网页未加载 ${file}`);
 }
 assert(html.includes("const practiceTargets"), "专项练习缺少固定题量配置");
@@ -104,29 +104,32 @@ for (let day = 1; day <= 55; day += 1) {
         available.filter(question => question.priorityProfile === "kuntai-2026-07")
       )
       : [];
-    const regular = available.filter(question => question.priorityProfile !== "kuntai-2026-07");
+    const regular = day <= 21
+      ? available.filter(question => question.priorityProfile !== "kuntai-2026-07")
+      : available;
     const selected = [...priority, ...regular].slice(0, target);
     assert(selected.length === target, `第${day}天${subject}题库不足`);
     selected.forEach((question) => used.add(question.id));
     report.subjects[subject] = selected.length;
     report.total += selected.length;
   }
-  assert(report.total === 19, `第${day}天题量不是19`);
+  assert(report.total === 60, `第${day}天题量不是60`);
   dayReports.push(report);
 }
-assert(dayReports[0].subjects.英语 === 5 && dayReports[0].subjects.物理 === 3, "前21天未优先英语5题、物理3题");
-assert(dayReports[20].subjects.英语 === 5 && dayReports[20].subjects.物理 === 3, "第21天个性化配额错误");
-assert(dayReports[21].subjects.英语 === 3 && dayReports[21].subjects.物理 === 1, "第22天未切回常规配额");
-assert(priorityQuestions.every(question => used.has(question.id)), "前21天个性化母题未全部排入");
+assert(dayReports[0].subjects.英语 === 14 && dayReports[0].subjects.物理 === 10, "前21天未优先英语14题、物理10题");
+assert(dayReports[20].subjects.英语 === 14 && dayReports[20].subjects.物理 === 10, "第21天个性化配额错误");
+assert(dayReports[21].subjects.英语 === 10 && dayReports[21].subjects.物理 === 8, "第22天未切回常规高刷配额");
+assert(used.size === 55 * 60, "55天主线排题总量不等于3300题");
 
 const summary = {
   bankBase: questions.length,
   usableWithVariants: questions.length * 2,
   days: dayReports.length,
-  dailyQuestions: 19,
+  dailyQuestions: 60,
   scheduledUniqueQuestions: used.size,
   reserveBaseQuestions: questions.length - used.size,
   firstDay: dayReports[0],
   lastDay: dayReports.at(-1)
 };
 console.log(JSON.stringify(summary, null, 2));
+
