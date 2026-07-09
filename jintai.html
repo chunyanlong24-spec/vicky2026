@@ -1453,6 +1453,7 @@
     let englishAudioFinish = null;
     let englishAudioGeneration = 0;
     let englishAudioPlaying = false;
+    let speechKeepAlive = null;
 
     const $ = (s) => document.querySelector(s);
     const $$ = (s) => [...document.querySelectorAll(s)];
@@ -1786,7 +1787,12 @@
 
     function pickVoice(lang) {
       const voices = window.speechSynthesis?.getVoices?.() || [];
-      return voices.find(v => v.lang === lang) || voices.find(v => v.lang?.startsWith(lang.slice(0, 2))) || null;
+      const base = lang.slice(0, 2).toLowerCase();
+      return voices.find(v => v.lang === lang && v.localService)
+        || voices.find(v => v.lang === lang)
+        || voices.find(v => v.lang?.toLowerCase().startsWith(base) && v.localService)
+        || voices.find(v => v.lang?.toLowerCase().startsWith(base))
+        || null;
     }
 
     function loadVoices() {
@@ -1805,11 +1811,28 @@
           if (done) return;
           done = true;
           window.speechSynthesis.onvoiceschanged = null;
+          window.speechSynthesis.removeEventListener?.("voiceschanged", finish);
           resolve(window.speechSynthesis.getVoices());
         };
         window.speechSynthesis.onvoiceschanged = finish;
+        window.speechSynthesis.addEventListener?.("voiceschanged", finish, { once: true });
         setTimeout(finish, 900);
       });
+    }
+
+    function startSpeechKeepAlive() {
+      stopSpeechKeepAlive();
+      speechKeepAlive = setInterval(() => {
+        if (!window.speechSynthesis?.speaking) return;
+        window.speechSynthesis.pause();
+        window.speechSynthesis.resume();
+      }, 8000);
+    }
+
+    function stopSpeechKeepAlive() {
+      if (!speechKeepAlive) return;
+      clearInterval(speechKeepAlive);
+      speechKeepAlive = null;
     }
 
     function speak(text, lang = "zh-CN") {
@@ -1821,6 +1844,9 @@
       if (voice) u.voice = voice;
       u.rate = 0.95;
       u.pitch = 1;
+      u.onstart = startSpeechKeepAlive;
+      u.onend = stopSpeechKeepAlive;
+      u.onerror = stopSpeechKeepAlive;
       window.speechSynthesis.speak(u);
       return true;
     }
@@ -1837,6 +1863,7 @@
         englishAudioFinish(false);
         englishAudioFinish = null;
       }
+      stopSpeechKeepAlive();
       window.speechSynthesis?.cancel();
     }
 
@@ -1868,35 +1895,57 @@
       return chunks;
     }
 
-    function playEnglishAudioChunk(text, generation) {
+    const ENGLISH_TTS_SOURCES = [
+      {
+        name: "Google",
+        url: text => `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=en&q=${encodeURIComponent(text)}`
+      },
+      {
+        name: "Baidu",
+        url: text => `https://fanyi.baidu.com/gettts?lan=en&text=${encodeURIComponent(text)}&spd=3&source=web`
+      }
+    ];
+
+    function playEnglishAudioChunk(text, generation, source) {
       return new Promise((resolve, reject) => {
-        const url = `https://fanyi.baidu.com/gettts?lan=en&text=${encodeURIComponent(text)}&spd=3&source=web`;
-        const audio = new Audio(url);
+        const audio = new Audio(source.url(text));
         englishAudio = audio;
         englishAudioFinish = resolve;
         audio.preload = "auto";
+        const timeout = setTimeout(() => {
+          englishAudio = null;
+          englishAudioFinish = null;
+          reject(new Error(`${source.name}-audio-timeout`));
+        }, 14000);
         audio.onended = () => {
+          clearTimeout(timeout);
           englishAudio = null;
           englishAudioFinish = null;
           resolve(true);
         };
         audio.onerror = () => {
+          clearTimeout(timeout);
           englishAudio = null;
           englishAudioFinish = null;
-          reject(new Error("online-audio-error"));
+          reject(new Error(`${source.name}-audio-error`));
         };
-        audio.play().catch(reject);
-        if (generation !== englishAudioGeneration) resolve(false);
+        audio.play().catch(error => {
+          clearTimeout(timeout);
+          reject(error);
+        });
+        if (generation !== englishAudioGeneration) {
+          clearTimeout(timeout);
+          resolve(false);
+        }
       });
     }
 
-    function playSystemEnglish(text, setStatus) {
+    function playSystemEnglishChunk(text, setStatus) {
       return new Promise(async resolve => {
         if (!("speechSynthesis" in window)) {
           resolve(false);
           return;
         }
-        await loadVoices();
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = "en-US";
         utterance.rate = 0.9;
@@ -1908,21 +1957,66 @@
           if (finished) return;
           finished = true;
           clearTimeout(startTimeout);
+          clearTimeout(maxTimeout);
+          clearInterval(speakingPoll);
+          stopSpeechKeepAlive();
           resolve(value);
         };
         const startTimeout = setTimeout(() => {
           if (!started) finish(false);
-        }, 3500);
+        }, 4500);
+        const maxTimeout = setTimeout(() => finish(started), Math.max(8000, text.length * 85));
+        const speakingPoll = setInterval(() => {
+          if (!started && window.speechSynthesis.speaking) {
+            started = true;
+            clearTimeout(startTimeout);
+            setStatus("正在播放系统英文语音");
+            startSpeechKeepAlive();
+          }
+        }, 250);
         utterance.onstart = () => {
           started = true;
           clearTimeout(startTimeout);
           setStatus("正在播放系统英文语音");
+          startSpeechKeepAlive();
         };
         utterance.onend = () => finish(true);
         utterance.onerror = () => finish(false);
         window.speechSynthesis.cancel();
         window.speechSynthesis.speak(utterance);
       });
+    }
+
+    async function playSystemEnglish(text, setStatus) {
+      if (!("speechSynthesis" in window)) return false;
+      await loadVoices();
+      const chunks = splitEnglishAudioText(text, 220);
+      for (let index = 0; index < chunks.length; index += 1) {
+        setStatus(`正在启动系统英文语音 ${index + 1}/${chunks.length}`);
+        const played = await playSystemEnglishChunk(chunks[index], setStatus);
+        if (!played) return false;
+      }
+      return true;
+    }
+
+    async function playOnlineEnglishAudio(chunks, generation, setStatus) {
+      for (let index = 0; index < chunks.length; index += 1) {
+        let chunkPlayed = false;
+        for (const source of ENGLISH_TTS_SOURCES) {
+          if (generation !== englishAudioGeneration) return "stopped";
+          try {
+            setStatus(`系统语音不可用，正在尝试在线音频 ${source.name} ${index + 1}/${chunks.length}`);
+            const played = await playEnglishAudioChunk(chunks[index], generation, source);
+            if (!played) return "stopped";
+            chunkPlayed = true;
+            break;
+          } catch (error) {
+            chunkPlayed = false;
+          }
+        }
+        if (!chunkPlayed) return "failed";
+      }
+      return "online";
     }
 
     async function playEnglishAudio(text, setStatus) {
@@ -1935,19 +2029,9 @@
       const systemPlayed = await playSystemEnglish(cleaned, setStatus);
       if (generation !== englishAudioGeneration) return "stopped";
       if (systemPlayed) return "system";
-      try {
-        for (let index = 0; index < chunks.length; index += 1) {
-          if (generation !== englishAudioGeneration) return "stopped";
-          setStatus(`系统语音不可用，正在播放在线音频 ${index + 1}/${chunks.length}`);
-          const played = await playEnglishAudioChunk(chunks[index], generation);
-          if (!played) return "stopped";
-        }
-        return "online";
-      } catch (error) {
-        if (generation !== englishAudioGeneration) return "stopped";
-        setStatus("当前浏览器拦截了英语音频，请点右上角用系统浏览器打开");
-        return "failed";
-      }
+      const onlineResult = await playOnlineEnglishAudio(chunks, generation, setStatus);
+      if (onlineResult === "failed") setStatus("请确认浏览器允许播放声音，或换系统浏览器/Chrome/平板浏览器重试");
+      return onlineResult;
     }
 
     function renderPlayer(q, targetSelector, intro) {
@@ -2240,7 +2324,7 @@
       button.textContent = "重新朗读";
       if (result === "online") status.textContent = "播放完成";
       if (result === "system") status.textContent = "系统语音播放完成";
-      if (result === "failed") status.textContent = "当前浏览器禁止音频，请用系统浏览器打开";
+      if (result === "failed") status.textContent = "请确认浏览器允许播放声音，或换系统浏览器/Chrome/平板浏览器重试";
       if (result === "stopped") status.textContent = "已停止";
     });
     $("#unsteadyBtn").addEventListener("click", () => submitAnswer(true));
