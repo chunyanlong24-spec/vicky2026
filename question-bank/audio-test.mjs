@@ -16,9 +16,11 @@ function assert(condition, message) {
 
 assert(html.includes('id="englishAudioStatus"'), "缺少英语音频状态提示");
 assert(html.includes("function playEnglishAudio"), "缺少在线英语音频播放函数");
+assert(html.includes("function loadVoices"), "缺少系统语音 voice 加载");
 assert(html.includes("fanyi.baidu.com/gettts"), "缺少可播放的在线英语音频源");
 assert(html.includes("new Audio("), "未使用浏览器音频播放器");
 assert(html.includes("function stopEnglishAudio"), "缺少停止英语音频功能");
 assert(html.includes("系统语音"), "缺少系统语音备用提示");
+assert(html.indexOf("playSystemEnglish(cleaned") < html.indexOf("playEnglishAudioChunk(chunks[index]"), "英语音频应先用系统语音，再用在线音频兜底");
 
 console.log("English audio fallback contract OK");

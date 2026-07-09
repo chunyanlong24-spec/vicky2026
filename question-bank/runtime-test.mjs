@@ -42,6 +42,9 @@ for (const [file] of files) {
 for (const file of ["kuntai-english-priority.js", "kuntai-physics-priority.js", "priority-engine.js"]) {
   assert(html.includes(`src="question-bank/${file}"`), `网页未加载 ${file}`);
 }
+assert(html.includes("const practiceTargets"), "专项练习缺少固定题量配置");
+assert(html.includes("buildPracticeQueue(subject)"), "专项练习缺少固定队列生成");
+assert(html.includes("今天这科先停，不继续加题"), "专项练习缺少做完即停提示");
 const inlineScripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)]
   .map((match) => match[1])
   .filter(Boolean);

@@ -1378,6 +1378,9 @@
     state.practiceSubject ??= "";
     state.pendingRecoveryId ??= "";
     state.seenByMode ??= {};
+    state.practiceQueue ??= [];
+    state.practiceQueueSubject ??= "";
+    state.practiceQueueDate ??= "";
     const localDateKey = () => {
       const now = new Date();
       const pad = value => String(value).padStart(2, "0");
@@ -1409,6 +1412,9 @@
       state.dailyBySubject = {};
       state.todayMistakes = [];
       state.dailyQueue = [];
+      state.practiceQueue = [];
+      state.practiceQueueSubject = "";
+      state.practiceQueueDate = "";
       state.currentQuestionId = "";
       localStorage.setItem("chengduTutorState", JSON.stringify(state));
     }
@@ -1426,6 +1432,9 @@
       state.dailyBySubject = {};
       state.todayMistakes = [];
       state.dailyQueue = [];
+      state.practiceQueue = [];
+      state.practiceQueueSubject = "";
+      state.practiceQueueDate = "";
       state.currentQuestionId = "";
       state.practiceSubject = "";
     }
@@ -1448,6 +1457,60 @@
 
     const $ = (s) => document.querySelector(s);
     const $$ = (s) => [...document.querySelectorAll(s)];
+    const practiceTargets = {
+      "数学": 12,
+      "英语": 12,
+      "语文": 10,
+      "物理": 10,
+      "化学": 8,
+      "地理": 8,
+      "生物": 8
+    };
+
+    function practiceModeKey(subject = state.practiceSubject) {
+      return subject ? `专项:${subject}:${today}` : "自测";
+    }
+
+    function practiceTarget(subject) {
+      return practiceTargets[subject] || 10;
+    }
+
+    function orderedSubjectPool(subject) {
+      const subjectPool = questions.filter(q => q.subject === subject);
+      const priority = window.KuntaiPriorityEngine.interleaveByWeakness(
+        subjectPool.filter(q => q.priorityProfile === "kuntai-2026-07")
+      );
+      const regular = subjectPool.filter(q => q.priorityProfile !== "kuntai-2026-07");
+      return [...priority, ...regular];
+    }
+
+    function buildPracticeQueue(subject) {
+      const modeKey = practiceModeKey(subject);
+      const alreadyDone = new Set(state.seenByMode[modeKey] || []);
+      const selectedIds = orderedSubjectPool(subject)
+        .filter(q => !alreadyDone.has(q.id) && !state.seenQuestionIds.includes(q.id))
+        .slice(0, practiceTarget(subject))
+        .map(q => q.id);
+      state.practiceQueue = selectedIds;
+      state.practiceQueueSubject = subject;
+      state.practiceQueueDate = today;
+      return selectedIds;
+    }
+
+    function activePracticeQueue(subject = state.practiceSubject) {
+      if (!subject) return [];
+      if (
+        state.practiceQueueSubject !== subject ||
+        state.practiceQueueDate !== today ||
+        !Array.isArray(state.practiceQueue) ||
+        !state.practiceQueue.length
+      ) {
+        buildPracticeQueue(subject);
+      }
+      return state.practiceQueue
+        .map(id => questions.find(q => q.id === id))
+        .filter(Boolean);
+    }
 
     function mixedPool() {
       const subjects = Object.keys(subjectTargets);
@@ -1481,16 +1544,13 @@
 
     function modePool() {
       if (!state.practiceSubject) return mixedPool();
-      const subjectPool = questions.filter(q => q.subject === state.practiceSubject);
-      const priority = window.KuntaiPriorityEngine.interleaveByWeakness(
-        subjectPool.filter(q => q.priorityProfile === "kuntai-2026-07")
-      );
-      const regular = subjectPool.filter(q => q.priorityProfile !== "kuntai-2026-07");
-      return [...priority, ...regular];
+      return activePracticeQueue();
     }
 
     function selectNextQuestion() {
-      const next = modePool().find(q => !state.seenQuestionIds.includes(q.id));
+      const modeKey = practiceModeKey();
+      const modeSeen = new Set(state.seenByMode[modeKey] || []);
+      const next = modePool().find(q => !modeSeen.has(q.id) && !state.seenQuestionIds.includes(q.id));
       if (!next) return null;
       state.currentQuestionId = next.id;
       return next;
@@ -1499,7 +1559,7 @@
     function currentQuestion() {
       const current = questions.find(q => q.id === state.currentQuestionId);
       if (current && (!state.practiceSubject || current.subject === state.practiceSubject)) return current;
-      return selectNextQuestion() || modePool()[0] || questions[0];
+      return selectNextQuestion();
     }
 
     function setNextQuestion() {
@@ -1508,6 +1568,15 @@
       if (dailyComplete) {
         alert("今日七科自测已完成。错题完成同类变式后，可进入专项练习。");
         return false;
+      }
+      if (state.practiceSubject) {
+        const modeKey = practiceModeKey();
+        const done = (state.seenByMode[modeKey] || []).length;
+        const total = activePracticeQueue().length || practiceTarget(state.practiceSubject);
+        if (done >= total) {
+          alert(`${state.practiceSubject}专项本轮已完成，共${done}题。今天这科先停，不继续加题。`);
+          return false;
+        }
       }
       state.currentQuestionId = "";
       const next = selectNextQuestion();
@@ -1556,6 +1625,31 @@
 
     function renderQuestion() {
       const q = currentQuestion();
+      if (!q) {
+        const subject = state.practiceSubject || "今日自测";
+        const done = state.practiceSubject
+          ? (state.seenByMode[practiceModeKey()] || []).length
+          : state.dailyDone;
+        const total = state.practiceSubject
+          ? (state.practiceQueue.length || practiceTarget(state.practiceSubject))
+          : Object.values(subjectTargets).reduce((sum, target) => sum + target, 0);
+        stopEnglishAudio();
+        englishAudioPlaying = false;
+        $("#readQuestionBtn").classList.add("hidden");
+        $("#englishAudioStatus").textContent = "";
+        $("#questionMeta").innerHTML = `<span class="pill">${subject}</span><span class="pill amber">已完成</span>`;
+        $("#questionStem").textContent = `${subject}已完成：${done}/${total}题。`;
+        $("#questionTranslation").classList.remove("hidden");
+        $("#questionTranslation").textContent = "今天这一轮到这里结束，剩下时间用于错题讲解和同类变式回收。";
+        $("#options").classList.add("hidden");
+        $("#options").innerHTML = "";
+        $("#textAnswer").classList.add("hidden");
+        $("#answerReveal").classList.add("hidden");
+        $("#submitBtn").classList.add("hidden");
+        $("#nextBtn").classList.add("hidden");
+        $("#inlinePlayer").classList.add("hidden");
+        return;
+      }
       const answerMode = q.answerMode || "choice";
       stopEnglishAudio();
       englishAudioPlaying = false;
@@ -1621,6 +1715,7 @@
 
     function submitAnswer(forceUnsteady = false) {
       const q = currentQuestion();
+      if (!q) return;
       const answerMode = q.answerMode || "choice";
       const response = answerMode === "choice" ? selected : $("#textAnswer").value;
       const confidence = $("input[name='confidence']:checked").value;
@@ -1630,7 +1725,7 @@
       }
       submitted = true;
       state.done += 1;
-      const modeKey = state.practiceSubject || "自测";
+      const modeKey = practiceModeKey();
       state.seenByMode[modeKey] ??= [];
       if (!state.seenByMode[modeKey].includes(q.id)) state.seenByMode[modeKey].push(q.id);
       if (!state.seenQuestionIds.includes(q.id)) state.seenQuestionIds.push(q.id);
@@ -1691,6 +1786,29 @@
     function pickVoice(lang) {
       const voices = window.speechSynthesis?.getVoices?.() || [];
       return voices.find(v => v.lang === lang) || voices.find(v => v.lang?.startsWith(lang.slice(0, 2))) || null;
+    }
+
+    function loadVoices() {
+      return new Promise(resolve => {
+        if (!("speechSynthesis" in window)) {
+          resolve([]);
+          return;
+        }
+        const current = window.speechSynthesis.getVoices();
+        if (current.length) {
+          resolve(current);
+          return;
+        }
+        let done = false;
+        const finish = () => {
+          if (done) return;
+          done = true;
+          window.speechSynthesis.onvoiceschanged = null;
+          resolve(window.speechSynthesis.getVoices());
+        };
+        window.speechSynthesis.onvoiceschanged = finish;
+        setTimeout(finish, 900);
+      });
     }
 
     function speak(text, lang = "zh-CN") {
@@ -1772,27 +1890,35 @@
     }
 
     function playSystemEnglish(text, setStatus) {
-      return new Promise(resolve => {
+      return new Promise(async resolve => {
         if (!("speechSynthesis" in window)) {
           resolve(false);
           return;
         }
+        await loadVoices();
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = "en-US";
         utterance.rate = 0.9;
         const voice = pickVoice("en-US");
         if (voice) utterance.voice = voice;
+        let finished = false;
         let started = false;
+        const finish = value => {
+          if (finished) return;
+          finished = true;
+          clearTimeout(startTimeout);
+          resolve(value);
+        };
         const startTimeout = setTimeout(() => {
-          if (!started) resolve(false);
-        }, 2500);
+          if (!started) finish(false);
+        }, 3500);
         utterance.onstart = () => {
           started = true;
           clearTimeout(startTimeout);
-          setStatus("在线音频不可用，已切换系统语音");
+          setStatus("正在播放系统英文语音");
         };
-        utterance.onend = () => resolve(true);
-        utterance.onerror = () => resolve(false);
+        utterance.onend = () => finish(true);
+        utterance.onerror = () => finish(false);
         window.speechSynthesis.cancel();
         window.speechSynthesis.speak(utterance);
       });
@@ -1804,19 +1930,22 @@
       const cleaned = cleanEnglishAudioText(text);
       const chunks = splitEnglishAudioText(cleaned);
       if (!chunks.length) return "failed";
+      setStatus("正在启动系统英文语音");
+      const systemPlayed = await playSystemEnglish(cleaned, setStatus);
+      if (generation !== englishAudioGeneration) return "stopped";
+      if (systemPlayed) return "system";
       try {
         for (let index = 0; index < chunks.length; index += 1) {
           if (generation !== englishAudioGeneration) return "stopped";
-          setStatus(`正在播放 ${index + 1}/${chunks.length}`);
+          setStatus(`系统语音不可用，正在播放在线音频 ${index + 1}/${chunks.length}`);
           const played = await playEnglishAudioChunk(chunks[index], generation);
           if (!played) return "stopped";
         }
         return "online";
       } catch (error) {
         if (generation !== englishAudioGeneration) return "stopped";
-        setStatus("在线音频加载失败，正在尝试系统语音");
-        const systemPlayed = await playSystemEnglish(cleaned, setStatus);
-        return systemPlayed ? "system" : "failed";
+        setStatus("当前浏览器拦截了英语音频，请点右上角用系统浏览器打开");
+        return "failed";
       }
     }
 
@@ -2071,11 +2200,18 @@
       const pool = questions.filter(q => q.subject === subject);
       if (pool.length) {
         state.practiceSubject = subject;
+        buildPracticeQueue(subject);
+        if (!state.practiceQueue.length) {
+          alert(`${subject}专项今天可用题已完成，可换一科或进入错题回收。`);
+          save();
+          renderQuestion();
+          return;
+        }
         state.currentQuestionId = "";
         selectNextQuestion();
         save();
         renderQuestion();
-        $("#practiceMode").textContent = `${subject}专项 · 按薄弱点组题`;
+        $("#practiceMode").textContent = `${subject}专项 · 固定${state.practiceQueue.length}题`;
         $$("[data-practice-subject]").forEach(b => b.classList.toggle("active", b === btn));
         $(".question-card").scrollIntoView({ behavior: "smooth", block: "start" });
       }
