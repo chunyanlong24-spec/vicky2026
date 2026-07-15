@@ -1388,12 +1388,15 @@
       return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
     };
     state.bySubject ??= {};
+    const PROGRAM_START_DATE = "2026-07-08";
+    const PROGRAM_END_DATE = "2026-08-31";
+    const daysBetween = (from, to) =>
+      Math.floor((new Date(`${to}T00:00:00`) - new Date(`${from}T00:00:00`)) / 86400000);
     state.dayStarted ??= localDateKey();
-    state.programStartDate ??= state.dayStarted;
     const today = localDateKey();
-    let programDay = Math.min(55, Math.max(1,
-      Math.floor((new Date(`${today}T00:00:00`) - new Date(`${state.programStartDate}T00:00:00`)) / 86400000) + 1
-    ));
+    const totalProgramDays = daysBetween(PROGRAM_START_DATE, PROGRAM_END_DATE) + 1;
+    state.programStartDate = PROGRAM_START_DATE;
+    let programDay = Math.min(totalProgramDays, Math.max(1, daysBetween(PROGRAM_START_DATE, today) + 1));
     let subjectTargets = window.KuntaiPriorityEngine.targetsForDay(programDay);
     state.history ??= [];
     state.dailyDone ??= 0;
@@ -1404,8 +1407,8 @@
     state.weaknessStats ??= {};
     if (state.schedulerVersion !== "kuntai-weakness-v1") {
       state.schedulerVersion = "kuntai-weakness-v1";
-      state.programStartDate = today;
-      programDay = 1;
+      state.programStartDate = PROGRAM_START_DATE;
+      programDay = Math.min(totalProgramDays, Math.max(1, daysBetween(PROGRAM_START_DATE, today) + 1));
       subjectTargets = window.KuntaiPriorityEngine.targetsForDay(programDay);
       state.dayStarted = today;
       state.dailyDone = 0;
@@ -1591,6 +1594,23 @@
       return true;
     }
 
+    function backfillDailyProgressFromSubjectPractice() {
+      Object.entries(state.seenByMode || {}).forEach(([key, ids]) => {
+        const match = key.match(/^专项:(.+):(.+)$/);
+        if (!match || match[2] !== today) return;
+        const subject = match[1];
+        if (!subjectTargets[subject]) return;
+        const done = Array.isArray(ids) ? ids.length : 0;
+        state.dailyBySubject[subject] ??= { done: 0, correct: 0, mistakes: 0 };
+        state.dailyBySubject[subject].done = Math.max(state.dailyBySubject[subject].done || 0, done);
+      });
+      const subjectDone = Object.values(state.dailyBySubject || {})
+        .reduce((sum, item) => sum + (item.done || 0), 0);
+      state.dailyDone = Math.max(state.dailyDone || 0, subjectDone);
+    }
+
+    backfillDailyProgressFromSubjectPractice();
+
     function save() {
       localStorage.setItem("chengduTutorState", JSON.stringify(state));
       updateStats();
@@ -1625,6 +1645,19 @@
       taskCopy.forEach((text, index) => {
         if (taskRows[index]) taskRows[index].textContent = text;
       });
+      const taskRowsWithStatus = $$(".today-box .panel")[0]?.querySelectorAll(".task-row") || [];
+      const taskSubjectGroups = [["数学"], ["英语"], ["语文"], ["物理"], ["化学"], ["地理", "生物"]];
+      taskSubjectGroups.forEach((group, index) => {
+        const target = group.reduce((sum, subject) => sum + (subjectTargets[subject] || 0), 0);
+        const done = group.reduce((sum, subject) => sum + (state.dailyBySubject[subject]?.done || 0), 0);
+        const strong = taskRowsWithStatus[index]?.querySelector("strong");
+        if (!strong) return;
+        strong.textContent = done >= target ? "已完成" : done > 0 ? `${done}/${target}题` : "未开始";
+      });
+      const recoveryStatus = taskRowsWithStatus[6]?.querySelector("strong");
+      if (recoveryStatus) {
+        recoveryStatus.textContent = state.pendingRecoveryId ? "待订正" : state.todayMistakes.length ? "已完成" : "锁定";
+      }
     }
 
     function renderQuestion() {
@@ -1749,20 +1782,16 @@
       }
       state.bySubject[q.subject] ??= { done: 0, correct: 0, mistakes: 0 };
       state.bySubject[q.subject].done += 1;
-      if (!state.practiceSubject) {
-        state.dailyDone += 1;
-        state.dailyBySubject[q.subject] ??= { done: 0, correct: 0, mistakes: 0 };
-        state.dailyBySubject[q.subject].done += 1;
-      }
+      state.dailyDone += 1;
+      state.dailyBySubject[q.subject] ??= { done: 0, correct: 0, mistakes: 0 };
+      state.dailyBySubject[q.subject].done += 1;
       if (isRight && confidence === "steady" && !forceUnsteady) {
         state.bySubject[q.subject].correct += 1;
-        if (!state.practiceSubject) {
-          state.dailyCorrect += 1;
-          state.dailyBySubject[q.subject].correct += 1;
-        }
+        state.dailyCorrect += 1;
+        state.dailyBySubject[q.subject].correct += 1;
       } else {
         state.bySubject[q.subject].mistakes += 1;
-        if (!state.practiceSubject) state.dailyBySubject[q.subject].mistakes += 1;
+        state.dailyBySubject[q.subject].mistakes += 1;
       }
       if (isRight && confidence === "steady" && !forceUnsteady) state.correct += 1;
       const needsRecovery = !isRight || confidence !== "steady" || forceUnsteady;
